@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface EffectRepository extends JpaRepository<Effect, Integer> {
-    List<Effect> findByImageId(int imageId);
+    //List<Effect> findByImageId(int imageId);
 }

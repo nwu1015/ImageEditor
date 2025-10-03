@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface CollageRepository extends JpaRepository<Collage, Integer> {
-    List<Collage> findByUserId(int userId);
+    //List<Collage> findByOwner_Id(int ownerId);
 }
+
