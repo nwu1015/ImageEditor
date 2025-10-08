@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Мої Колажі</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1, h2 { color: #2c3e50; }
+    .card { background-color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { background-color: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    button:hover { background-color: #2980b9; }
+    .collage-list a { display: block; background-color: #ecf0f1; padding: 15px; margin-bottom: 10px; border-radius: 4px; text-decoration: none; color: #2c3e50; transition: background-color 0.3s; }
+    .collage-list a:hover { background-color: #bdc3c7; }
+    .collage-list .details { font-size: 14px; color: #7f8c8d; }
+    .empty-list { color: #95a5a6; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Головна сторінка</h1>
+
+  <div class="card">
+    <h2>Створити новий колаж</h2>
+    <form th:action="@{/create-collage}" method="post">
+      <div class="form-group">
+        <label for="name">Назва проекту:</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="canvasWidth">Ширина полотна (px):</label>
+        <input type="number" id="canvasWidth" name="canvasWidth" value="800" required>
+      </div>
+      <div class="form-group">
+        <label for="canvasHeight">Висота полотна (px):</label>
+        <input type="number" id="canvasHeight" name="canvasHeight" value="600" required>
+      </div>
+      <button type="submit">Створити</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Мої проекти</h2>
+    <div class="collage-list">
+      <div th:if="${!collages.isEmpty()}">
+        <a th:each="collage : ${collages}" th:href="@{/editor/{id}(id=${collage.id})}">
+          <strong th:text="${collage.name}">Назва колажу</strong>
+          <div class="details" th:text="'Розмір: ' + ${collage.canvasWidth} + 'x' + ${collage.canvasHeight} + 'px'">
+            Розмір: 800x600px
+          </div>
+        </a>
+      </div>
+      <div th:if="${collages.isEmpty()}" class="empty-list">
+        <p>У вас ще немає жодного проекту. Створіть перший!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

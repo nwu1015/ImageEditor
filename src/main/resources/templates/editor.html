@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Редактор - ' + ${collage.name}">Редактор Колажу</title>
+    <style>
+        body { font-family: sans-serif; display: flex; }
+        .toolbar { width: 250px; padding: 20px; border-right: 1px solid #ccc; }
+        .workspace { flex-grow: 1; padding: 20px; }
+        .canvas {
+            position: relative;
+            border: 2px dashed #aaa;
+            background-color: #f9f9f9;
+        }
+        .layer { position: absolute; }
+        .layer img { max-width: 100%; border: 1px solid transparent; }
+        .layer:hover img { border: 1px solid blue; }
+        .layer-controls {
+            position: absolute; bottom: -30px; left: 0; background: rgba(255,255,255,0.8);
+            display: none; padding: 2px;
+        }
+        .layer:hover .layer-controls { display: block; }
+        .layer-controls button { font-size: 10px; padding: 2px 4px; }
+        form { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<aside class="toolbar">
+    <h3>Завантажити нове зображення</h3>
+    <form th:action="@{/editor/{id}/upload(id=${collage.id})}" method="post" enctype="multipart/form-data">
+        <input type="file" name="imageFile" required>
+        <button type="submit">Додати</button>
+    </form>
+</aside>
+
+<main class="workspace">
+    <h1 th:text="${collage.name}">Назва Колажу</h1>
+
+    <div class="canvas" th:style="'width:' + ${collage.canvasWidth} + 'px; height:' + ${collage.canvasHeight} + 'px;'">
+
+        <div th:each="layer : ${collage.layers}" class="layer"
+             th:styleappend="'left:' + ${layer.positionX} + 'px; ' +
+                             'top:' + ${layer.positionY} + 'px; ' +
+                             'width:' + ${layer.width} + 'px; ' +
+                             'height:' + ${layer.height} + 'px; ' +
+                             'z-index:' + ${layer.zIndex} + '; ' +
+                             'transform: rotate(' + ${layer.rotationAngle} + 'deg);'">
+
+            <img th:src="@{'/uploads/' + ${layer.image.storagePath.substring(layer.image.storagePath.lastIndexOf('/')+1)}}" alt="Зображення шару">
+
+            <div class="layer-controls">
+                <form th:action="@{/editor/{id}/layer-action(id=${collage.id})}" method="post" style="display: inline;">
+                    <input type="hidden" name="layerId" th:value="${layer.id}" />
+                    <button type="submit" name="action" value="rotate">🔄</button>
+                    <button type="submit" name="action" value="move_left">←</button>
+                    <button type="submit" name="action" value="move_right">→</button>
+                    <button type="submit" name="action" value="delete" style="color: red;">🗑️</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

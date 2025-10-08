@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Мої зображення</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .image-card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 200px;
+      text-align: center;
+    }
+    .image-card img {
+      max-width: 100%;
+      height: auto;
+    }
+    .delete-btn {
+      margin-top: 5px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background-color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+<h1>Мої зображення</h1>
+<div class="gallery">
+  <div th:each="image : ${images}" class="image-card">
+    <img th:src="@{${image.url}}" th:alt="${image.name}">
+    <p th:text="${image.name}"></p>
+    <form th:action="@{/images/delete/{id}(id=${image.id})}" method="post">
+      <input type="hidden" name="userId" th:value="${userId}" />
+      <button type="submit" class="delete-btn">Видалити</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

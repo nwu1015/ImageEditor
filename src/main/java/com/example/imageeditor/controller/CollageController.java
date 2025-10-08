@@ -1,66 +1,54 @@
 package com.example.imageeditor.controller;
 
-import com.example.imageeditor.entity.Collage;
-import com.example.imageeditor.service.CollageService;
-import lombok.RequiredArgsConstructor;
+import com.example.imageeditor.domain.*;
+import com.example.imageeditor.service.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/collages")
-@RequiredArgsConstructor
+@Controller
+@RequestMapping("/editor")
 public class CollageController {
 
-    private final CollageService collageService;
+    @Autowired
+    private CollageService collageService;
 
-    // створення колажу (userId + список imageId)
-    @PostMapping("/create/{userId}")
-    public ResponseEntity<Collage> createCollage(@RequestBody CollageRequest request,
-                                                 @PathVariable int userId) {
-        Collage savedCollage = collageService.createCollage(request.toEntity(), userId, request.getImageIds());
-        return ResponseEntity.ok(savedCollage);
+    /**
+     * Відображає головну сторінку редактора для конкретного колажу.
+     */
+    @GetMapping("/{collageId}")
+    public String showEditorPage(@PathVariable Long collageId, Model model) {
+        model.addAttribute("collage", collageService.findCollageById(collageId));
+        return "editor"; // Повертає назву HTML-файлу: "editor.html"
     }
 
-    // отримати всі колажі користувача
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Collage>> getUserCollages(@PathVariable int userId) {
-        return ResponseEntity.ok(collageService.getCollagesByUser(userId));
-    }
-
-    // отримати конкретний колаж
-    @GetMapping("/{id}")
-    public ResponseEntity<Collage> getCollageById(@PathVariable int id) {
-        return collageService.getCollageById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // видалити колаж
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCollage(@PathVariable int id) {
-        collageService.deleteCollage(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    // DTO-шка для запиту
-    public static class CollageRequest {
-        private String name;
-        private List<Integer> imageIds;
-
-        public Collage toEntity() {
-            Collage collage = new Collage();
-            collage.setName(this.name);
-            return collage;
+    /**
+     * Обробляє завантаження нового зображення.
+     */
+    @PostMapping("/{collageId}/upload")
+    public String handleImageUpload(@PathVariable Long collageId, @RequestParam("imageFile") MultipartFile file) {
+        try {
+            collageService.addImageToCollage(collageId, file);
+        } catch (IOException e) {
+            // Тут варто додати обробку помилок, наприклад, через flash-атрибути
+            e.printStackTrace();
         }
+        // Перенаправляє користувача на ту саму сторінку, щоб оновити вигляд
+        return "redirect:/editor/" + collageId;
+    }
 
-        public String getName() {
-            return name;
-        }
-
-        public List<Integer> getImageIds() {
-            return imageIds;
-        }
+    /**
+     * Обробляє дії над існуючим шаром (поворот, видалення і т.д.).
+     */
+    @PostMapping("/{collageId}/layer-action")
+    public String handleLayerAction(@PathVariable Long collageId,
+                                    @RequestParam Long layerId,
+                                    @RequestParam String action) {
+        collageService.updateLayerAction(layerId, action);
+        return "redirect:/editor/" + collageId;
     }
 }
