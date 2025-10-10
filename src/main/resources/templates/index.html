@@ -83,6 +83,8 @@
             Вітаємо, <strong sec:authentication="name">Username</strong>!
         </span>
 
+            <a th:href="@{/my-images}" class="btn">Мої зображення</a>
+
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <button type="submit" class="logout-btn">Вийти</button>
             </form>

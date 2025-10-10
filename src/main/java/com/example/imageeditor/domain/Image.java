@@ -18,6 +18,9 @@ public class Image {
     @Column(nullable = false)
     private String fileName;
 
+    @Column
+    private String title;
+
     // Шлях до файлу у файловій системі або URL у хмарному сховищі
     @Column(nullable = false)
     private String path;
