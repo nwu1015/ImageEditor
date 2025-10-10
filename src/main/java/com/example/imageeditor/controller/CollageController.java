@@ -6,8 +6,10 @@ import com.example.imageeditor.domain.User;
 import com.example.imageeditor.repository.ImageRepository;
 import com.example.imageeditor.service.CollageService;
 import com.example.imageeditor.service.ImageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -19,27 +21,24 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 
 @Controller
-@RequestMapping("/collages") // 1. Змінили базовий URL на логічний "/collages"
+@RequestMapping("/collages")
+@RequiredArgsConstructor
 public class CollageController {
 
-    @Autowired
-    private CollageService collageService;
-    @Autowired
-    private ImageRepository imageRepository; // Потрібен для методу-перехідника
+    private final CollageService collageService;
 
-    @Autowired
-    private ImageService imageService;
+    private final ImageRepository imageRepository;
+
+    private final ImageService imageService;
 
     /**
-     * Метод-перехідник: знаходить колаж за ID зображення і перенаправляє на основний редактор.
-     * Сюди буде вести посилання "Редагувати" з галереї.
+     * Transition method: finds the collage by image ID and redirects to the main editor.
      */
     @GetMapping("/from-image/{imageId}")
     public String editCollageFromImage(@PathVariable Long imageId, @AuthenticationPrincipal User user) {
         Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found!"));
 
-        // Перевірка власності
         if (!image.getOwner().getId().equals(user.getId())) {
             throw new SecurityException("Access Denied");
         }
@@ -47,42 +46,42 @@ public class CollageController {
         ImageLayer layer = collageService.findOrCreateLayerForImage(image, user);
         Long collageId = layer.getCollage().getId();
 
-        // Перенаправляємо на головний ендпоінт редактора
         return "redirect:/collages/" + collageId;
     }
 
     /**
-     * Головний метод, що відображає сторінку редактора для конкретного колажу.
+     * The main method that displays the editor page for a specific collage.
      */
     @GetMapping("/{collageId}")
     public String showEditorPage(@PathVariable Long collageId, Model model) {
-        // Перевірка власності колажу (добра практика - додати в сервіс)
         model.addAttribute("collage", collageService.findCollageById(collageId));
-        return "editor"; // Повертає editor.html
+        return "editor";
     }
 
     /**
-     * Обробляє завантаження нового зображення в колаж.
+     * Handles loading a new image into the collage.
      */
-    @PostMapping("/{collageId}/layers/add") // 2. Зробили URL більш чітким
+    @PostMapping("/{collageId}/layers/add")
     public String handleImageUpload(@PathVariable Long collageId,
                                     @RequestParam("imageFile") MultipartFile file,
                                     @AuthenticationPrincipal User user,
                                     RedirectAttributes redirectAttributes) {
         try {
             collageService.addImageToCollage(collageId, file, user);
-            redirectAttributes.addFlashAttribute("successMessage", "Зображення додано!");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Зображення додано!");
         } catch (IOException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка завантаження файлу.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Помилка завантаження файлу.");
             e.printStackTrace();
         }
         return "redirect:/collages/" + collageId;
     }
 
     /**
-     * Обробляє дії над існуючим шаром (поворот, видалення і т.д.).
+     * Processes actions on an existing layer (rotate, delete, etc.).
      */
-    @PostMapping("/{collageId}/layers/{layerId}/action") // 3. Зробили URL більш RESTful
+    @PostMapping("/{collageId}/layers/{layerId}/action")
     public String handleLayerAction(@PathVariable Long collageId,
                                     @PathVariable Long layerId,
                                     @RequestParam String action) {
@@ -94,28 +93,37 @@ public class CollageController {
     @ResponseBody
     public ResponseEntity<Resource> getTransformedLayer(@PathVariable Long layerId) {
         try {
-            // Використовуємо ImageService для логіки трансформації
             Resource resource = imageService.getTransformedLayerAsResource(layerId);
-            return ResponseEntity.ok().body(resource);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue())
+                    .body(resource);
         } catch (Exception e) {
-            // Якщо сталася помилка, повертаємо 404, щоб браузер знав, що файлу немає
-            e.printStackTrace(); // Допоможе побачити помилку в консолі сервера
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
 
-    // === ДОДАЙТЕ ЦЕЙ МЕТОД ===
     @PostMapping("/{collageId}/render")
-    public String renderCollage(@PathVariable Long collageId, @AuthenticationPrincipal User user, RedirectAttributes redirectAttributes) {
+    public String renderCollage(@PathVariable Long collageId, @AuthenticationPrincipal User user,
+                                RedirectAttributes redirectAttributes) {
         try {
             Image finalImage = collageService.renderAndSaveCollage(collageId, user);
-            // Передаємо ID фінального зображення, щоб показати його на сторінці результату
             redirectAttributes.addFlashAttribute("finalImageId", finalImage.getId());
-            return "redirect:/my-images"; // Перенаправляємо в галерею, де з'явиться новий файл
+            return "redirect:/my-images";
         } catch (IOException e) {
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Не вдалося зберегти колаж.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Не вдалося зберегти колаж.");
             return "redirect:/collages/" + collageId;
         }
+    }
+
+    @PostMapping("/{collageId}/layers/{layerId}/update")
+    public String updateLayerDetails(@PathVariable Long collageId,
+                                     @PathVariable Long layerId,
+                                     @ModelAttribute CollageService.LayerUpdateDTO dto) {
+        collageService.updateImageLayer(layerId, dto);
+        return "redirect:/collages/" + collageId;
     }
 }

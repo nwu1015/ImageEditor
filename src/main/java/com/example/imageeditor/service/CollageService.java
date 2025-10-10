@@ -6,6 +6,7 @@ import com.example.imageeditor.domain.ImageLayer;
 import com.example.imageeditor.domain.User;
 import com.example.imageeditor.repository.CollageRepository;
 import com.example.imageeditor.repository.ImageLayerRepository;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,10 +30,20 @@ public class CollageService {
     private final ImageService imageService;
 
     // DTO для оновлення шару
+    @Data
     public static class LayerUpdateDTO {
+        // Для розтягування/стиснення
         public Integer width;
         public Integer height;
+
+        // Для повороту
         public Double rotationAngle;
+
+        // Для кадрування
+        public Integer cropX;
+        public Integer cropY;
+        public Integer cropWidth;
+        public Integer cropHeight;
     }
 
     @Transactional
@@ -63,6 +74,10 @@ public class CollageService {
         Optional.ofNullable(dto.width).ifPresent(layer::setWidth);
         Optional.ofNullable(dto.height).ifPresent(layer::setHeight);
         Optional.ofNullable(dto.rotationAngle).ifPresent(layer::setRotationAngle);
+        Optional.ofNullable(dto.cropX).ifPresent(layer::setCropX);
+        Optional.ofNullable(dto.cropY).ifPresent(layer::setCropY);
+        Optional.ofNullable(dto.cropWidth).ifPresent(layer::setCropWidth);
+        Optional.ofNullable(dto.cropHeight).ifPresent(layer::setCropHeight);
 
         return imageLayerRepository.save(layer);
     }
@@ -73,36 +88,19 @@ public class CollageService {
     }
 
     @Transactional
-    public Collage createCollage(String name, int canvasWidth, int canvasHeight, User user) {
-        Collage newCollage = new Collage();
-
-        newCollage.setName(name);
-        newCollage.setCanvasWidth(canvasWidth);
-        newCollage.setCanvasHeight(canvasHeight);
-        newCollage.setUser(user); // Встановлюємо власника колажу
-
-        // Зберігаємо новий колаж у базі даних і повертаємо його
-        return collageRepository.save(newCollage);
-    }
-
-    @Transactional
     public ImageLayer addImageToCollage(Long collageId, MultipartFile file, User user) throws IOException {
-        // 1. Спочатку зберігаємо завантажений файл і створюємо сутність Image
         Image image = imageService.storeImage(file, user);
 
-        // 2. Знаходимо колаж, до якого додаємо зображення
         Collage collage = findCollageById(collageId);
 
-        // 3. Створюємо новий шар (ImageLayer)
         ImageLayer newLayer = new ImageLayer();
         newLayer.setImage(image);
         newLayer.setCollage(collage);
         newLayer.setWidth(image.getWidth());
         newLayer.setHeight(image.getHeight());
-        newLayer.setPositionX(0); // Початкова позиція
+        newLayer.setPositionX(0);
         newLayer.setPositionY(0);
 
-        // Встановлюємо zIndex, щоб шар з'явився поверх інших
         int maxZIndex = collage.getLayers().stream()
                 .mapToInt(ImageLayer::getZIndex)
                 .max().orElse(-1);
@@ -111,7 +109,6 @@ public class CollageService {
         return imageLayerRepository.save(newLayer);
     }
 
-    // === І ЦЕЙ МЕТОД ===
     @Transactional
     public ImageLayer updateLayerAction(Long layerId, String action) {
         ImageLayer layer = imageLayerRepository.findById(layerId)
@@ -126,23 +123,15 @@ public class CollageService {
                 break;
             case "delete":
                 imageLayerRepository.delete(layer);
-                return null; // Повертаємо null, оскільки шар видалено
-            // Можна додати інші дії, наприклад "bring_forward", "send_backward"
-            // case "bring_forward":
-            //     layer.setZIndex(layer.getZIndex() + 1);
-            //     break;
+                return null;
         }
-
         return imageLayerRepository.save(layer);
     }
 
-    // === ДОДАЙТЕ ЦЕЙ МЕТОД ===
     @Transactional
     public Image renderAndSaveCollage(Long collageId, User user) throws IOException {
-        // 1. Знаходимо колаж з усіма його шарами
         Collage collage = findCollageById(collageId);
 
-        // 2. Створюємо пусте "полотно" з розмірами колажу
         BufferedImage canvas = new BufferedImage(
                 collage.getCanvasWidth(),
                 collage.getCanvasHeight(),
@@ -150,22 +139,19 @@ public class CollageService {
         );
         Graphics2D g2d = canvas.createGraphics();
 
-        // 3. Проходимо по всіх шарах (вони вже відсортовані по zIndex) і малюємо їх
         for (ImageLayer layer : collage.getLayers()) {
-            // Отримуємо трансформоване зображення для кожного шару
-            BufferedImage transformedLayerImage = imageService.applyTransformationsToLayer(layer.getId());
+            BufferedImage transformedLayerImage =
+                    imageService.applyTransformationsToLayer(layer.getId());
 
-            // Малюємо шар на полотні у вказаній позиції
-            g2d.drawImage(transformedLayerImage, layer.getPositionX(), layer.getPositionY(), null);
+            g2d.drawImage(transformedLayerImage, layer.getPositionX(),
+                    layer.getPositionY(), null);
         }
-        g2d.dispose(); // Звільняємо ресурси
+        g2d.dispose();
 
-        // 4. Зберігаємо фінальне зображення у файл
-        String finalFileName = "collage-" + UUID.randomUUID().toString() + ".png";
+        String finalFileName = "collage-" + UUID.randomUUID() + ".png";
         Path finalPath = Paths.get("uploads").resolve(finalFileName);
         ImageIO.write(canvas, "png", finalPath.toFile());
 
-        // 5. (Опціонально, але рекомендовано) Створюємо новий запис Image для фінального колажу
         Image finalImage = new Image();
         finalImage.setFileName(finalFileName);
         finalImage.setPath(finalPath.toString());
@@ -175,7 +161,6 @@ public class CollageService {
         finalImage.setOwner(user);
         finalImage.setTitle("Результат колажу: " + collage.getName());
 
-        // Зберігаємо інформацію про фінальний файл у БД
-        return imageService.saveFinalImage(finalImage); // Вам треба буде створити цей простий метод в ImageService
+        return imageService.saveFinalImage(finalImage);
     }
 }

@@ -7,29 +7,95 @@
     <title>Мої зображення</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f9f9f9; }
-        .header-placeholder { height: 70px; } /* Щоб контент не ховався під хедер */
-        header { /* Ви можете винести хедер в окремий фрагмент Thymeleaf */
+        .header-placeholder { height: 70px; }
+        header {
             background-color: #ffffff; padding: 15px 30px; border-bottom: 1px solid #ddd; display: flex;
             justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; box-sizing: border-box;
         }
         .logo a { font-size: 1.5em; font-weight: bold; text-decoration: none; color: #333; }
         .user-controls { display: flex; align-items: center; gap: 15px; }
-        .btn { background-color: #3498db; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; }
-        .btn-logout { background-color: #e74c3c; }
         .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .image-card { background: white; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .image-card img { width: 100%; height: 200px; object-fit: cover; }
         .image-card-info { padding: 15px; }
-        .image-card-info h3 { margin: 0 0 10px 0; font-size: 1.1em; }
+        .image-card-info h3 { margin: 0 0 10px 0; font-size: 1.1em; word-break: break-all; }
         .no-images { text-align: center; color: #777; font-size: 1.2em; padding: 50px; }
+
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white !important;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-logout { background-color: #e74c3c; }
+        .btn-edit { background-color: #28a745; }
+        .btn-delete { background-color: #e74c3c; }
+
+        .title-update-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .title-update-form input { flex-grow: 1; /* Поле вводу займає весь доступний простір */ }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .card-actions form { margin: 0; }
+
+        .upload-form {
+            margin-top: 40px;
+            padding: 25px;
+            background-color: #eef1f2;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .upload-form form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .upload-form input[type="file"] {
+            display: none;
+        }
+
+        .btn-upload {
+            background-color: #5c6bc0;
+        }
+        .btn-upload:hover {
+            background-color: #3f51b5;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo">
-        <a th:href="@{/}">🖼️ Редактор Зображень</a>
+        <a th:href="@{/}">Редактор Зображень</a>
     </div>
     <div class="user-controls">
         <div sec:authorize="isAuthenticated()" class="user-controls">
@@ -43,6 +109,21 @@
 </header>
 <div class="header-placeholder"></div>
 
+<div class="upload-form">
+    <h2>Завантажити нове зображення</h2>
+    <form method="POST" th:action="@{/images/upload}" enctype="multipart/form-data">
+
+        <input type="file" name="file" id="file-upload" required />
+
+        <label for="file-upload" class="btn btn-upload">Вибрати файл</label>
+
+        <button type="submit" class="btn">Завантажити</button>
+    </form>
+
+    <div th:if="${successMessage}" th:text="${successMessage}" class="message success"></div>
+    <div th:if="${errorMessage}" th:text="${errorMessage}" class="message error"></div>
+</div>
+
 <div class="container">
     <h2>Моя галерея</h2>
 
@@ -55,28 +136,20 @@
             <img th:src="@{'/api/images/' + ${image.fileName}}" />
             <div class="image-card-info">
                 <h3 th:text="${image.title != null ? image.title : image.fileName}">Назва</h3>
-                <form th:action="@{'/images/update/' + ${image.id}}" method="post">
+
+                <form th:action="@{'/images/update/' + ${image.id}}" method="post" class="title-update-form">
                     <input type="text" name="title" placeholder="Нова назва" required>
-                    <button type="submit">Зберегти</button>
+                    <button type="submit" class="btn">Зберегти</button>
                 </form>
 
-                <a th:href="@{'/collages/from-image/' + ${image.id}}" class="btn" style="background-color: #28a745;">Редагувати</a>
-
-                <form th:action="@{'/images/delete/' + ${image.id}}" method="post" style="margin-top: 10px;">
-                    <button type="submit" style="background-color: #e74c3c;">Видалити</button>
-                </form>
-
+                <div class="card-actions">
+                    <a th:href="@{'/collages/from-image/' + ${image.id}}" class="btn btn-edit">Редагувати</a>
+                    <form th:action="@{'/images/delete/' + ${image.id}}" method="post">
+                        <button type="submit" class="btn btn-delete">Видалити</button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="upload-form">
-        <form method="POST" th:action="@{/images/upload}" enctype="multipart/form-data">
-            <input type="file" name="file" required />
-            <button type="submit">Завантажити</button>
-        </form>
-        <div th:if="${successMessage}" th:text="${successMessage}" style="color: green;"></div>
-        <div th:if="${errorMessage}" th:text="${errorMessage}" style="color: red;"></div>
     </div>
 </div>
 

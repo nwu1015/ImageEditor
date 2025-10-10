@@ -5,7 +5,7 @@ import com.example.imageeditor.domain.ImageLayer;
 import com.example.imageeditor.domain.User;
 import com.example.imageeditor.repository.ImageRepository;
 import com.example.imageeditor.service.CollageService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,20 +14,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
+@RequiredArgsConstructor
 public class EditorController {
 
-    @Autowired
-    private ImageRepository imageRepository;
-    @Autowired
-    private CollageService collageService;
+    private final ImageRepository imageRepository;
+    private final CollageService collageService;
 
-    // Показує сторінку редактора
     @GetMapping("/editor/{imageId}")
     public String showEditor(@PathVariable Long imageId, Model model, @AuthenticationPrincipal User user) {
         Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found!"));
 
-        // Перевірка, чи користувач є власником зображення
         if (!image.getOwner().getId().equals(user.getId())) {
             throw new SecurityException("Access Denied");
         }
@@ -35,10 +32,9 @@ public class EditorController {
         ImageLayer layer = collageService.findOrCreateLayerForImage(image, user);
 
         model.addAttribute("layer", layer);
-        return "editor"; // Назва нового HTML-файлу
+        return "editor";
     }
 
-    // Оновлює параметри шару (трансформації)
     @PostMapping("/layers/{layerId}/update")
     public String updateLayer(@PathVariable Long layerId, CollageService.LayerUpdateDTO dto) {
         ImageLayer updatedLayer = collageService.updateImageLayer(layerId, dto);

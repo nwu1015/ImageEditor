@@ -10,7 +10,8 @@ import java.util.Optional;
 
 public interface ImageLayerRepository extends JpaRepository<ImageLayer, Long> {
     Optional<ImageLayer> findById(Long id);
-    // Spring Data JPA сам побудує запит за назвою цього методу
+
     Optional<ImageLayer> findFirstByImageAndCollage_User(Image image, User user);
+
     List<ImageLayer> findAllByImage(Image image);
 }

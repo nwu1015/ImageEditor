@@ -3,6 +3,7 @@ package com.example.imageeditor.domain;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,10 +27,10 @@ public class Image {
     private String path;
 
     @Column(nullable = false)
-    private String fileFormat; // Наприклад, "jpeg", "png"
+    private String fileFormat;
 
-    private int width;  // Ширина оригіналу
-    private int height; // Висота оригіналу
+    private int width;
+    private int height;
 
     @Column(updatable = false)
     private LocalDateTime uploadedAt = LocalDateTime.now();

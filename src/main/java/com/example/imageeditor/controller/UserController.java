@@ -32,11 +32,10 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public String processRegistration(@ModelAttribute("user") User user) { // Приймаємо об'єкт User
+    public String processRegistration(@ModelAttribute("user") User user) {
         try {
             userService.register(user);
         } catch (IllegalStateException e) {
-            // Якщо користувач вже існує, повертаємо на сторінку з помилкою
             return "redirect:/register?error";
         }
         return "redirect:/login?success";

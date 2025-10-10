@@ -10,7 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig{
+public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -21,20 +21,17 @@ public class SecurityConfig{
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // Дозволяємо доступ всім до головної сторінки, сторінок реєстрації та логіну, а також до статичних ресурсів
                         .requestMatchers("/", "/register", "/login", "/css/**", "/js/**").permitAll()
-                        // Всі інші запити вимагають, щоб користувач був аутентифікований
                         .anyRequest().authenticated()
                 )
-                // Вказуємо Spring Security використовувати стандартну форму логіну
                 .formLogin(form -> form
-                        .loginPage("/login") // Наша кастомна сторінка для входу
+                        .loginPage("/login")
                         .defaultSuccessUrl("/", true)
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout") // URL, який обробляє вихід
-                        .logoutSuccessUrl("/") // Куди перенаправити після виходу
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
                         .permitAll()
                 );
 
