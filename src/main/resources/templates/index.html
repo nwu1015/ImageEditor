@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Головна - Редактор Зображень</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        header {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px 0;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .login-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .login-btn:hover {
+            background-color: #2980b9;
+        }
+        .main-content {
+            margin-top: 120px; /* Space for the fixed header */
+            padding: 20px;
+        }
+        .main-content h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+        }
+        .main-content p {
+            font-size: 1.2em;
+            max-width: 600px;
+            margin: 20px auto;
+            line-height: 1.6;
+        }
+        footer {
+            margin-top: 40px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        🖼️ Редактор Зображень
+    </div>
+    <nav>
+        <div sec:authorize="!isAuthenticated()">
+            <a th:href="@{/login}" class="login-btn">Увійти</a>
+        </div>
+
+        <div sec:authorize="isAuthenticated()">
+        <span class="username-display">
+            Вітаємо, <strong sec:authentication="name">Username</strong>!
+        </span>
+
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">Вийти</button>
+            </form>
+        </div>
+    </nav>
+</header>
+
+<div class="main-content">
+    <h1>Ласкаво просимо до нашого редактора зображень!</h1>
+    <p>
+        Відкривайте, редагуйте та зберігайте ваші зображення з легкістю. Наш сервіс підтримує
+        найпопулярніші формати та пропонує широкий спектр інструментів: від простих поворотів
+        та кадрування до створення унікальних колажів.
+    </p>
+    <p>
+        Щоб почати, просто увійдіть у свій акаунт!
+    </p>
+</div>
+
+<footer>
+    <p>&copy; 2025 Редактор Зображень. Всі права захищено.</p>
+</footer>
+
+</body>
+</html>

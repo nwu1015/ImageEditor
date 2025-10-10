@@ -18,11 +18,19 @@
 <div class="container">
     <h2>Register</h2>
     <form th:action="@{/register}" th:object="${user}" method="post">
-        <input type="text" th:field="*{login}" placeholder="Login" required>
+
+        <input type="text" th:field="*{username}" placeholder="Username" required>
+
+        <input type="email" th:field="*{email}" placeholder="Email" required>
+
         <input type="password" th:field="*{password}" placeholder="Password" required>
         <button type="submit">Register</button>
     </form>
-    <div class="error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="error" th:if="${param.error}">
+        Username already exists.
+    </div>
+
     <div class="link">
         <a th:href="@{/login}">Already have an account? Login</a>
     </div>

@@ -6,9 +6,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
+@RequestMapping("/collage")
 public class DashBoardController {
 
     @Autowired
@@ -17,7 +19,6 @@ public class DashBoardController {
     /**
      * Відображає головну сторінку зі списком усіх колажів.
      */
-    @GetMapping("/") // Робимо цю сторінку кореневою
     public String showDashboard(Model model) {
         model.addAttribute("collages", collageService.findAllCollages());
         return "dashboard"; // Назва HTML-файлу: dashboard.html
