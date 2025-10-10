@@ -60,6 +60,8 @@
                     <button type="submit">Зберегти</button>
                 </form>
 
+                <a th:href="@{'/collages/from-image/' + ${image.id}}" class="btn" style="background-color: #28a745;">Редагувати</a>
+
                 <form th:action="@{'/images/delete/' + ${image.id}}" method="post" style="margin-top: 10px;">
                     <button type="submit" style="background-color: #e74c3c;">Видалити</button>
                 </form>

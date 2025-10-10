@@ -1,8 +1,11 @@
 package com.example.imageeditor.controller;
 
 import com.example.imageeditor.domain.Image;
+import com.example.imageeditor.domain.ImageLayer;
 import com.example.imageeditor.domain.User;
+import com.example.imageeditor.repository.ImageLayerRepository;
 import com.example.imageeditor.service.ImageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -23,6 +26,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,10 +35,10 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Controller
+@RequiredArgsConstructor
 public class ImageController {
 
-    @Autowired
-    private ImageService imageService;
+    private final ImageService imageService;
 
     @GetMapping("/api/images/{filename:.+}")
     @ResponseBody // Важливо: вказує, що відповідь - це тіло, а не назва шаблону
