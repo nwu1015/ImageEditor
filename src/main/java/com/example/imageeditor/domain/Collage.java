@@ -1,5 +1,9 @@
 package com.example.imageeditor.domain;
 
+import com.example.imageeditor.state.ArchivedCollageState;
+import com.example.imageeditor.state.CollageState;
+import com.example.imageeditor.state.DraftCollageState;
+import com.example.imageeditor.state.PublishedCollageState;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,4 +38,37 @@ public class Collage {
     @OneToMany(mappedBy = "collage", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("zIndex ASC")
     private List<ImageLayer> layers = new ArrayList<>();
+
+    @Column(nullable = false)
+    private String status = "DRAFT";
+
+    @Transient
+    private CollageState currentState;
+
+    @PostLoad
+    public void initState() {
+        switch (this.status) {
+            case "PUBLISHED":
+                this.currentState = new PublishedCollageState();
+                break;
+            case "ARCHIVED":
+                this.currentState = new ArchivedCollageState();
+                break;
+            default:
+                this.currentState = new DraftCollageState();
+                break;
+        }
+    }
+
+    public void changeState(CollageState newState) {
+        this.currentState = newState;
+        this.status = newState.getStatusName();
+    }
+
+    public CollageState getCurrentState() {
+        if (currentState == null) {
+            initState();
+        }
+        return currentState;
+    }
 }

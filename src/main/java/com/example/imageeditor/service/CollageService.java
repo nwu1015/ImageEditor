@@ -71,6 +71,9 @@ public class CollageService {
         ImageLayer layer = imageLayerRepository.findById(layerId)
                 .orElseThrow(() -> new RuntimeException("ImageLayer not found with ID: " + layerId));
 
+        Collage collage = layer.getCollage();
+        collage.getCurrentState().checkCanEdit(collage);
+
         Optional.ofNullable(dto.width).ifPresent(layer::setWidth);
         Optional.ofNullable(dto.height).ifPresent(layer::setHeight);
         Optional.ofNullable(dto.rotationAngle).ifPresent(layer::setRotationAngle);
@@ -89,9 +92,10 @@ public class CollageService {
 
     @Transactional
     public ImageLayer addImageToCollage(Long collageId, MultipartFile file, User user) throws IOException {
-        Image image = imageService.storeImage(file, user);
-
         Collage collage = findCollageById(collageId);
+        collage.getCurrentState().checkCanEdit(collage);
+
+        Image image = imageService.storeImage(file, user);
 
         ImageLayer newLayer = new ImageLayer();
         newLayer.setImage(image);
@@ -113,6 +117,9 @@ public class CollageService {
     public ImageLayer updateLayerAction(Long layerId, String action) {
         ImageLayer layer = imageLayerRepository.findById(layerId)
                 .orElseThrow(() -> new RuntimeException("Layer not found with id: " + layerId));
+
+        Collage collage = layer.getCollage();
+        collage.getCurrentState().checkCanEdit(collage);
 
         switch (action) {
             case "rotate_right":
