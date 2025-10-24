@@ -179,7 +179,7 @@ public class CollageService {
         Collage collage = prototypeLayer.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
 
-        ImageLayer newLayer = prototypeLayer.copy();
+        ImageLayer newLayer = prototypeLayer.clone();
 
         int maxZIndex = collage.getLayers().stream()
                 .mapToInt(ImageLayer::getZIndex)

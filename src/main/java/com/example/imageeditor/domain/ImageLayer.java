@@ -1,5 +1,6 @@
 package com.example.imageeditor.domain;
 
+import com.example.imageeditor.service.Prototype;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "image_layers")
 @Data
 @NoArgsConstructor
-public class ImageLayer {
+public class ImageLayer implements Prototype<ImageLayer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,23 +44,28 @@ public class ImageLayer {
     private String effectsJson;
 
 
-    public ImageLayer copy() {
-        ImageLayer newLayer = new ImageLayer();
 
-        newLayer.setCollage(this.getCollage());
-        newLayer.setImage(this.getImage());
+    @Override
+    public ImageLayer clone() {
+        try {
+            ImageLayer newLayer = (ImageLayer) super.clone();
 
-        newLayer.setWidth(this.width);
-        newLayer.setHeight(this.height);
-        newLayer.setRotationAngle(this.rotationAngle);
-        newLayer.setCropX(this.cropX);
-        newLayer.setCropY(this.cropY);
-        newLayer.setCropWidth(this.cropWidth);
-        newLayer.setCropHeight(this.cropHeight);
-        newLayer.setPositionX(this.positionX);
-        newLayer.setPositionY(this.positionY);
+            newLayer.setCollage(this.getCollage());
+            newLayer.setImage(this.getImage());
 
-        return newLayer;
+            newLayer.setWidth(this.width);
+            newLayer.setHeight(this.height);
+            newLayer.setRotationAngle(this.rotationAngle);
+            newLayer.setCropX(this.cropX);
+            newLayer.setCropY(this.cropY);
+            newLayer.setCropWidth(this.cropWidth);
+            newLayer.setCropHeight(this.cropHeight);
+            newLayer.setPositionX(this.positionX);
+            newLayer.setPositionY(this.positionY);
+
+            return newLayer;
+        }catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Клонування не підтримується");
+        }
     }
-
 }
