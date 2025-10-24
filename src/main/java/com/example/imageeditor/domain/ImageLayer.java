@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "image_layers")
 @Data
 @NoArgsConstructor
-public class ImageLayer implements Prototype<ImageLayer> {
+public class ImageLayer implements Prototype<ImageLayer>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,25 +47,21 @@ public class ImageLayer implements Prototype<ImageLayer> {
 
     @Override
     public ImageLayer clone() {
-        try {
-            ImageLayer newLayer = (ImageLayer) super.clone();
+        ImageLayer newLayer = new ImageLayer();
 
-            newLayer.setCollage(this.getCollage());
-            newLayer.setImage(this.getImage());
+        newLayer.setCollage(this.getCollage());
+        newLayer.setImage(this.getImage());
 
-            newLayer.setWidth(this.width);
-            newLayer.setHeight(this.height);
-            newLayer.setRotationAngle(this.rotationAngle);
-            newLayer.setCropX(this.cropX);
-            newLayer.setCropY(this.cropY);
-            newLayer.setCropWidth(this.cropWidth);
-            newLayer.setCropHeight(this.cropHeight);
-            newLayer.setPositionX(this.positionX);
-            newLayer.setPositionY(this.positionY);
+        newLayer.setWidth(this.width);
+        newLayer.setHeight(this.height);
+        newLayer.setRotationAngle(this.rotationAngle);
+        newLayer.setCropX(this.cropX);
+        newLayer.setCropY(this.cropY);
+        newLayer.setCropWidth(this.cropWidth);
+        newLayer.setCropHeight(this.cropHeight);
+        newLayer.setPositionX(this.positionX);
+        newLayer.setPositionY(this.positionY);
 
-            return newLayer;
-        }catch (CloneNotSupportedException e) {
-            throw new RuntimeException("Клонування не підтримується");
-        }
+        return newLayer;
     }
 }
