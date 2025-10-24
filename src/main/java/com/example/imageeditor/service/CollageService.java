@@ -173,10 +173,10 @@ public class CollageService {
 
     @Transactional
     public void duplicateLayer(Long layerId) {
-        ImageLayer prototypeLayer = imageLayerRepository.findById(layerId)
+        Prototype<ImageLayer> prototypeLayer = imageLayerRepository.findById(layerId)
                 .orElseThrow(() -> new RuntimeException("Layer not found: " + layerId));
 
-        Collage collage = prototypeLayer.getCollage();
+        Collage collage = ((ImageLayer) prototypeLayer).getCollage();
         collage.getCurrentState().checkCanEdit(collage);
 
         ImageLayer newLayer = prototypeLayer.clone();

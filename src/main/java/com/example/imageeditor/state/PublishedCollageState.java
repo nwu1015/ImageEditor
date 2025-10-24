@@ -10,7 +10,8 @@ public class PublishedCollageState implements CollageState {
 
     @Override
     public void checkCanEdit(Collage context) {
-        throw new IllegalStateException("Cannot edit a PUBLISHED collage. Archive it first to make changes.");
+        throw new IllegalStateException(
+                "Cannot edit a PUBLISHED collage. Archive it first to make changes.");
     }
 
     @Override
@@ -24,6 +25,7 @@ public class PublishedCollageState implements CollageState {
 
     @Override
     public void restore(Collage context) {
-        throw new IllegalStateException("Cannot restore from Published state.");
+        throw new IllegalStateException(
+                "Cannot restore from Published state.");
     }
 }

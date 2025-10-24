@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "image_layers")
 @Data
 @NoArgsConstructor
-public class ImageLayer implements Prototype<ImageLayer>{
+public class ImageLayer implements Prototype, Cloneable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,25 +43,29 @@ public class ImageLayer implements Prototype<ImageLayer>{
     @Column(columnDefinition = "TEXT")
     private String effectsJson;
 
-
-
     @Override
     public ImageLayer clone() {
-        ImageLayer newLayer = new ImageLayer();
+        try {
+            ImageLayer newLayer = (ImageLayer) super.clone();
 
-        newLayer.setCollage(this.getCollage());
-        newLayer.setImage(this.getImage());
+            newLayer.setId(null);
 
-        newLayer.setWidth(this.width);
-        newLayer.setHeight(this.height);
-        newLayer.setRotationAngle(this.rotationAngle);
-        newLayer.setCropX(this.cropX);
-        newLayer.setCropY(this.cropY);
-        newLayer.setCropWidth(this.cropWidth);
-        newLayer.setCropHeight(this.cropHeight);
-        newLayer.setPositionX(this.positionX);
-        newLayer.setPositionY(this.positionY);
+            newLayer.setCollage(this.getCollage());
+            newLayer.setImage(this.getImage());
 
-        return newLayer;
+            newLayer.setWidth(this.width);
+            newLayer.setHeight(this.height);
+            newLayer.setRotationAngle(this.rotationAngle);
+            newLayer.setCropX(this.cropX);
+            newLayer.setCropY(this.cropY);
+            newLayer.setCropWidth(this.cropWidth);
+            newLayer.setCropHeight(this.cropHeight);
+            newLayer.setPositionX(this.positionX);
+            newLayer.setPositionY(this.positionY);
+
+            return newLayer;
+        }catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Something went wrong.. Can't clone layer.");
+        }
     }
 }

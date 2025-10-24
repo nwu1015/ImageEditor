@@ -25,6 +25,7 @@ public class DraftCollageState implements CollageState {
 
     @Override
     public void restore(Collage context) {
-        throw new IllegalStateException("Cannot restore from Draft state.");
+        throw new IllegalStateException(
+                "Cannot restore from Draft state.");
     }
 }
