@@ -126,4 +126,13 @@ public class CollageController {
         collageService.updateImageLayer(layerId, dto);
         return "redirect:/collages/" + collageId;
     }
+
+    @PostMapping("/{collageId}/layers/{layerId}/clone")
+    public String cloneLayer(@PathVariable Long collageId,
+                                     @PathVariable Long layerId,
+                                     @ModelAttribute CollageService.LayerUpdateDTO dto) {
+        collageService.duplicateLayer(layerId);
+        collageService.updateImageLayer(layerId, dto);
+        return "redirect:/collages/" + collageId;
+    }
 }

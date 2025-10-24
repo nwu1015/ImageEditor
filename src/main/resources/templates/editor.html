@@ -66,6 +66,11 @@
                         <input type="hidden" name="action" value="delete">
                         <button type="submit" class="btn-delete">Видалити шар</button>
                     </form>
+
+                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/clone'}" method="post">
+                        <input type="hidden" name="action" value="clone">
+                        <button type="submit" class="btn-delete">Клонувати шар</button>
+                    </form>
                 </div>
 
                 <div class="control-group">

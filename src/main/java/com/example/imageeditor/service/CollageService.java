@@ -170,4 +170,23 @@ public class CollageService {
 
         return imageService.saveFinalImage(finalImage);
     }
+
+    @Transactional
+    public void duplicateLayer(Long layerId) {
+        ImageLayer prototypeLayer = imageLayerRepository.findById(layerId)
+                .orElseThrow(() -> new RuntimeException("Layer not found: " + layerId));
+
+        Collage collage = prototypeLayer.getCollage();
+        collage.getCurrentState().checkCanEdit(collage);
+
+        ImageLayer newLayer = prototypeLayer.copy();
+
+        int maxZIndex = collage.getLayers().stream()
+                .mapToInt(ImageLayer::getZIndex)
+                .max().orElse(-1);
+        newLayer.setZIndex(maxZIndex + 1);
+
+        imageLayerRepository.save(newLayer);
+    }
+
 }

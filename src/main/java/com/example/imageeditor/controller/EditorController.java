@@ -38,7 +38,6 @@ public class EditorController {
     @PostMapping("/layers/{layerId}/update")
     public String updateLayer(@PathVariable Long layerId, CollageService.LayerUpdateDTO dto) {
         ImageLayer updatedLayer = collageService.updateImageLayer(layerId, dto);
-        // Повертаємо користувача назад на сторінку редактора
         return "redirect:/editor/" + updatedLayer.getImage().getId();
     }
 }

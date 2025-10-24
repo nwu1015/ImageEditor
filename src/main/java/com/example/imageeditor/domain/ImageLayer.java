@@ -41,4 +41,25 @@ public class ImageLayer {
 
     @Column(columnDefinition = "TEXT")
     private String effectsJson;
+
+
+    public ImageLayer copy() {
+        ImageLayer newLayer = new ImageLayer();
+
+        newLayer.setCollage(this.getCollage());
+        newLayer.setImage(this.getImage());
+
+        newLayer.setWidth(this.width);
+        newLayer.setHeight(this.height);
+        newLayer.setRotationAngle(this.rotationAngle);
+        newLayer.setCropX(this.cropX);
+        newLayer.setCropY(this.cropY);
+        newLayer.setCropWidth(this.cropWidth);
+        newLayer.setCropHeight(this.cropHeight);
+        newLayer.setPositionX(this.positionX);
+        newLayer.setPositionY(this.positionY);
+
+        return newLayer;
+    }
+
 }
