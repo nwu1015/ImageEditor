@@ -1,9 +1,7 @@
 package com.example.imageeditor.service;
 
-import com.example.imageeditor.domain.Collage;
+import com.example.imageeditor.domain.*;
 import com.example.imageeditor.domain.Image;
-import com.example.imageeditor.domain.ImageLayer;
-import com.example.imageeditor.domain.User;
 import com.example.imageeditor.repository.CollageRepository;
 import com.example.imageeditor.repository.ImageLayerRepository;
 import lombok.Data;
@@ -18,8 +16,11 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Stack;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,11 @@ public class CollageService {
     private final CollageRepository collageRepository;
     private final ImageLayerRepository imageLayerRepository;
     private final ImageService imageService;
+
+    // Зберігаємо історію для кожного колажу
+    // В реальному додатку це краще прив'язати до сесії або кешу
+    private final Map<Long, Stack<ImageLayerMemento>> undoStacks = new ConcurrentHashMap<>();
+    private final Map<Long, Stack<ImageLayerMemento>> redoStacks = new ConcurrentHashMap<>();
 
     // DTO для оновлення шару
     @Data
@@ -44,6 +50,21 @@ public class CollageService {
         public Integer cropY;
         public Integer cropWidth;
         public Integer cropHeight;
+    }
+
+    /**
+     * Внутрішній метод для збереження стану ШАРУ перед зміною.
+     */
+    private void saveUndoState(Long collageId, ImageLayer layer) {
+        // Отримуємо стеки для конкретного колажу
+        Stack<ImageLayerMemento> undoStack = undoStacks.computeIfAbsent(collageId, k -> new Stack<>());
+        Stack<ImageLayerMemento> redoStack = redoStacks.computeIfAbsent(collageId, k -> new Stack<>());
+
+        // Зберігаємо поточний стан в Undo
+        undoStack.push(layer.createMemento());
+
+        // Будь-яка нова дія очищує історію "Redo"
+        redoStack.clear();
     }
 
     @Transactional
@@ -73,6 +94,8 @@ public class CollageService {
 
         Collage collage = layer.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
+
+        saveUndoState(layer.getCollage().getId(), layer);
 
         Optional.ofNullable(dto.width).ifPresent(layer::setWidth);
         Optional.ofNullable(dto.height).ifPresent(layer::setHeight);
@@ -120,6 +143,8 @@ public class CollageService {
 
         Collage collage = layer.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
+
+        saveUndoState(layer.getCollage().getId(), layer);
 
         switch (action) {
             case "rotate_right":
@@ -187,6 +212,53 @@ public class CollageService {
         newLayer.setZIndex(maxZIndex + 1);
 
         imageLayerRepository.save(newLayer);
+    }
+
+    @Transactional
+    public ImageLayer undo(Long collageId) {
+        Stack<ImageLayerMemento> undoStack = undoStacks.get(collageId);
+        Stack<ImageLayerMemento> redoStack = redoStacks.get(collageId);
+
+        if (undoStack == null || undoStack.isEmpty()) {
+            return null; // Нема чого скасовувати
+        }
+
+        // останній стан
+        ImageLayerMemento mementoToRestore = undoStack.pop();
+
+        ImageLayer layer = imageLayerRepository.findById(mementoToRestore.layerId())
+                .orElseThrow(() -> new RuntimeException("Layer not found"));
+
+        if (redoStack == null) redoStack = new Stack<>();
+        redoStack.push(layer.createMemento());
+        redoStacks.put(collageId, redoStack);
+
+        layer.restoreFromMemento(mementoToRestore);
+
+        return imageLayerRepository.save(layer);
+    }
+
+    @Transactional
+    public ImageLayer redo(Long collageId) {
+        Stack<ImageLayerMemento> undoStack = undoStacks.get(collageId);
+        Stack<ImageLayerMemento> redoStack = redoStacks.get(collageId);
+
+        if (redoStack == null || redoStack.isEmpty()) {
+            return null;
+        }
+
+        ImageLayerMemento mementoToRestore = redoStack.pop();
+
+        ImageLayer layer = imageLayerRepository.findById(mementoToRestore.layerId())
+                .orElseThrow(() -> new RuntimeException("Layer not found"));
+
+        if (undoStack == null) undoStack = new Stack<>();
+        undoStack.push(layer.createMemento());
+        undoStacks.put(collageId, undoStack);
+
+        layer.restoreFromMemento(mementoToRestore);
+
+        return imageLayerRepository.save(layer);
     }
 
 }

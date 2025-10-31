@@ -135,4 +135,20 @@ public class CollageController {
         collageService.updateImageLayer(layerId, dto);
         return "redirect:/collages/" + collageId;
     }
+
+    @PostMapping("/{collageId}/layers/{layerId}/undo")
+    public String undoAction(@PathVariable Long collageId,
+                             @PathVariable Long layerId,
+                             @ModelAttribute CollageService.LayerUpdateDTO dto){
+        collageService.undo(collageId);
+        return "redirect:/collages/" + collageId;
+    }
+
+    @PostMapping("/{collageId}/layers/{layerId}/redo")
+    public String redoAction(@PathVariable Long collageId,
+                             @PathVariable Long layerId,
+                             @ModelAttribute CollageService.LayerUpdateDTO dto){
+        collageService.redo(collageId);
+        return "redirect:/collages/" + collageId;
+    }
 }

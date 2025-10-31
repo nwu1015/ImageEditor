@@ -68,4 +68,20 @@ public class ImageLayer implements Prototype, Cloneable {
             throw new RuntimeException("Something went wrong.. Can't clone layer.");
         }
     }
+
+    public ImageLayerMemento createMemento() {
+        return new ImageLayerMemento(this);
+    }
+
+    public void restoreFromMemento(ImageLayerMemento memento) {
+        this.setPositionX(memento.positionX());
+        this.setPositionY(memento.positionY());
+        this.setWidth(memento.width());
+        this.setHeight(memento.height());
+        this.setRotationAngle(memento.rotationAngle());
+        this.setCropX(memento.cropX());
+        this.setCropY(memento.cropY());
+        this.setCropWidth(memento.cropWidth());
+        this.setCropHeight(memento.cropHeight());
+    }
 }
