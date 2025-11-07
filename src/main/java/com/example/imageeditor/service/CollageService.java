@@ -30,8 +30,6 @@ public class CollageService {
     private final ImageLayerRepository imageLayerRepository;
     private final ImageService imageService;
 
-    // Зберігаємо історію для кожного колажу
-    // В реальному додатку це краще прив'язати до сесії або кешу
     private final Map<Long, Stack<ImageLayerMemento>> undoStacks = new ConcurrentHashMap<>();
     private final Map<Long, Stack<ImageLayerMemento>> redoStacks = new ConcurrentHashMap<>();
 
@@ -52,18 +50,12 @@ public class CollageService {
         public Integer cropHeight;
     }
 
-    /**
-     * Внутрішній метод для збереження стану ШАРУ перед зміною.
-     */
     private void saveUndoState(Long collageId, ImageLayer layer) {
-        // Отримуємо стеки для конкретного колажу
         Stack<ImageLayerMemento> undoStack = undoStacks.computeIfAbsent(collageId, k -> new Stack<>());
         Stack<ImageLayerMemento> redoStack = redoStacks.computeIfAbsent(collageId, k -> new Stack<>());
 
-        // Зберігаємо поточний стан в Undo
         undoStack.push(layer.createMemento());
 
-        // Будь-яка нова дія очищує історію "Redo"
         redoStack.clear();
     }
 
@@ -167,7 +159,7 @@ public class CollageService {
         BufferedImage canvas = new BufferedImage(
                 collage.getCanvasWidth(),
                 collage.getCanvasHeight(),
-                BufferedImage.TYPE_INT_ARGB // Тип, що підтримує прозорість
+                BufferedImage.TYPE_INT_ARGB
         );
         Graphics2D g2d = canvas.createGraphics();
 
@@ -220,7 +212,7 @@ public class CollageService {
         Stack<ImageLayerMemento> redoStack = redoStacks.get(collageId);
 
         if (undoStack == null || undoStack.isEmpty()) {
-            return null; // Нема чого скасовувати
+            return null;
         }
 
         // останній стан

@@ -207,4 +207,32 @@ public class ImageService {
     public Image saveFinalImage(Image image) {
         return imageRepository.save(image);
     }
+
+    /**
+     * Приховує всю складність збереження згенерованого BufferedImage.
+     * Обробляє іменування, збереження файлу та створення сутності в БД.
+     */
+    @Transactional
+    public Image saveRenderedCollage(BufferedImage canvas, Collage collage, User user) throws IOException {
+        String fileExtension = "png";
+        String uniqueFilename = "collage-" + UUID.randomUUID() + "." + fileExtension;
+        Path destinationFile = this.rootLocation.resolve(uniqueFilename).normalize().toAbsolutePath();
+
+        try {
+            ImageIO.write(canvas, fileExtension, destinationFile.toFile());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save rendered collage", e);
+        }
+
+        Image finalImage = new Image();
+        finalImage.setFileName(uniqueFilename);
+        finalImage.setPath(destinationFile.toString());
+        finalImage.setFileFormat(fileExtension);
+        finalImage.setOwner(user);
+        finalImage.setWidth(canvas.getWidth());
+        finalImage.setHeight(canvas.getHeight());
+        finalImage.setTitle("Результат колажу: " + collage.getName());
+
+        return imageRepository.save(finalImage);
+    }
 }
