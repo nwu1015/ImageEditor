@@ -172,20 +172,7 @@ public class CollageService {
         }
         g2d.dispose();
 
-        String finalFileName = "collage-" + UUID.randomUUID() + ".png";
-        Path finalPath = Paths.get("uploads").resolve(finalFileName);
-        ImageIO.write(canvas, "png", finalPath.toFile());
-
-        Image finalImage = new Image();
-        finalImage.setFileName(finalFileName);
-        finalImage.setPath(finalPath.toString());
-        finalImage.setFileFormat("png");
-        finalImage.setWidth(canvas.getWidth());
-        finalImage.setHeight(canvas.getHeight());
-        finalImage.setOwner(user);
-        finalImage.setTitle("Результат колажу: " + collage.getName());
-
-        return imageService.saveFinalImage(finalImage);
+        return imageService.saveRenderedCollage(canvas, collage, user);
     }
 
     @Transactional

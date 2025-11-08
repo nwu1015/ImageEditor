@@ -208,10 +208,7 @@ public class ImageService {
         return imageRepository.save(image);
     }
 
-    /**
-     * Приховує всю складність збереження згенерованого BufferedImage.
-     * Обробляє іменування, збереження файлу та створення сутності в БД.
-     */
+
     @Transactional
     public Image saveRenderedCollage(BufferedImage canvas, Collage collage, User user) throws IOException {
         String fileExtension = "png";
