@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -59,19 +60,23 @@ public class ImageService {
             String uniqueFilename = UUID.randomUUID() + "." + fileExtension;
             Path destinationFile = this.rootLocation.resolve(uniqueFilename).normalize().toAbsolutePath();
 
-            int width = 0;
-            int height = 0;
             try (InputStream inputStream = file.getInputStream()) {
-                BufferedImage bufferedImage = ImageIO.read(inputStream);
+                Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            int width, height;
+            try {
+                BufferedImage bufferedImage = ImageIO.read(destinationFile.toFile());
+
                 if (bufferedImage == null) {
-                    throw new IOException("Could not read image file to determine dimensions.");
+                    Files.delete(destinationFile);
+                    throw new IOException("Файл збережено, але він не є валідним зображенням (jpg, png, gif).");
                 }
                 width = bufferedImage.getWidth();
                 height = bufferedImage.getHeight();
-            }
-
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                try { Files.deleteIfExists(destinationFile); } catch (IOException ignored) {}
+                throw new RuntimeException("Не вдалося прочитати розміри збереженого файлу.", e);
             }
 
             Image image = new Image();

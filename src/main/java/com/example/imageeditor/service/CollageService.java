@@ -153,14 +153,12 @@ public class CollageService {
     }
 
     /**
-     * ОНОВЛЕНИЙ МЕТОД
-     * Рендерить колаж, використовуючи рекурсивний підхід (Composite).
+     * Renders the collage using a recursive approach (Composite).
      */
     @Transactional
     public Image renderAndSaveCollage(Long collageId, User user) throws IOException {
         Collage collage = findCollageById(collageId);
 
-        // Тут ми використовуємо правильну ініціалізацію з вашого старого коду
         BufferedImage canvas = new BufferedImage(
                 collage.getCanvasWidth(),
                 collage.getCanvasHeight(),
@@ -168,9 +166,7 @@ public class CollageService {
         );
         Graphics2D g2d = canvas.createGraphics();
 
-        // Тепер .getLayers() повертає список ImageLayer (деякі з них - групи)
         for (ImageLayer layer : collage.getLayers()) {
-            // Ми просто кажемо шару "намалюй себе"
             renderLayerRecursive(g2d, layer);
         }
 
@@ -179,23 +175,15 @@ public class CollageService {
     }
 
     /**
-     * НОВИЙ ПРИВАТНИЙ МЕТОД (Composite Pattern)
-     * Рекурсивно малює шар. Якщо це "Листок", він малює його.
-     * Якщо це "Група", він викликає цей же метод для всіх "нащадків".
+     * Recursively draws a layer. If it is a "Leaf", it draws it.
+     * If it is a "Group", it calls the same method for all "descendants".
      */
     private void renderLayerRecursive(Graphics2D g2d, ImageLayer layer) throws IOException {
         if (layer.isGroup()) {
-            // --- 1. Це ГРУПА (Composite) ---
-            // (Тут можна було б застосувати загальні трансформації групи,
-            //  наприклад, зсунути або повернути g2d)
-
-            // Рекурсивно малюємо всіх "нащадків"
             for (ImageLayer child : layer.getChildren()) {
-                renderLayerRecursive(g2d, child); // Рекурсія
+                renderLayerRecursive(g2d, child);
             }
         } else {
-            // --- 2. Це "ЛИСТОК" (Leaf) ---
-            // Малюємо його так само, як ви робили це раніше
             BufferedImage img = imageService.applyTransformationsToLayer(layer.getId());
             g2d.drawImage(img, layer.getPositionX(), layer.getPositionY(), null);
         }
