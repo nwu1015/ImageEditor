@@ -216,7 +216,6 @@ public class CollageService {
             return null;
         }
 
-        // останній стан
         ImageLayerMemento mementoToRestore = undoStack.pop();
 
         ImageLayer layer = imageLayerRepository.findById(mementoToRestore.layerId())
