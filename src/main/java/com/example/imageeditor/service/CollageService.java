@@ -3,23 +3,19 @@ package com.example.imageeditor.service;
 import com.example.imageeditor.domain.*;
 import com.example.imageeditor.domain.Image;
 import com.example.imageeditor.repository.CollageRepository;
-import com.example.imageeditor.repository.ImageLayerRepository;
+import com.example.imageeditor.repository.LayerComponentRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -27,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CollageService {
 
     private final CollageRepository collageRepository;
-    private final ImageLayerRepository imageLayerRepository;
+    private final LayerComponentRepository layerComponentRepository;
     private final ImageService imageService;
 
     private final Map<Long, Stack<ImageLayerMemento>> undoStacks = new ConcurrentHashMap<>();
@@ -61,7 +57,7 @@ public class CollageService {
 
     @Transactional
     public ImageLayer findOrCreateLayerForImage(Image image, User user) {
-        return imageLayerRepository.findFirstByImageAndCollage_User(image, user)
+        return layerComponentRepository.findFirstImageLayerByImageAndUser(image, user)
                 .orElseGet(() -> {
                     Collage collage = new Collage();
                     collage.setName("Collage_for_image_" + image.getId());
@@ -75,14 +71,14 @@ public class CollageService {
                     layer.setCollage(savedCollage);
                     layer.setWidth(image.getWidth());
                     layer.setHeight(image.getHeight());
-                    return imageLayerRepository.save(layer);
+                    return layerComponentRepository.save(layer);
                 });
     }
 
     @Transactional
     public ImageLayer updateImageLayer(Long layerId, LayerUpdateDTO dto) {
-        ImageLayer layer = imageLayerRepository.findById(layerId)
-                .orElseThrow(() -> new RuntimeException("ImageLayer not found with ID: " + layerId));
+        ImageLayer layer = layerComponentRepository.findImageLayerById(layerId)
+                .orElseThrow(() -> new RuntimeException("ImageLayer (Leaf) not found with ID: " + layerId));
 
         Collage collage = layer.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
@@ -97,7 +93,7 @@ public class CollageService {
         Optional.ofNullable(dto.cropWidth).ifPresent(layer::setCropWidth);
         Optional.ofNullable(dto.cropHeight).ifPresent(layer::setCropHeight);
 
-        return imageLayerRepository.save(layer);
+        return layerComponentRepository.save(layer);
     }
 
     public Collage findCollageById(Long collageId) {
@@ -121,40 +117,39 @@ public class CollageService {
         newLayer.setPositionY(0);
 
         int maxZIndex = collage.getLayers().stream()
-                .mapToInt(ImageLayer::getZIndex)
+                .mapToInt(LayerComponent::getZIndex)
                 .max().orElse(-1);
         newLayer.setZIndex(maxZIndex + 1);
 
-        return imageLayerRepository.save(newLayer);
+        return layerComponentRepository.save(newLayer);
     }
 
     @Transactional
-    public ImageLayer updateLayerAction(Long layerId, String action) {
-        ImageLayer layer = imageLayerRepository.findById(layerId)
-                .orElseThrow(() -> new RuntimeException("Layer not found with id: " + layerId));
+    public LayerComponent updateLayerAction(Long layerId, String action) {
+        LayerComponent component = layerComponentRepository.findById(layerId)
+                .orElseThrow(() -> new RuntimeException("LayerComponent not found with id: " + layerId));
 
-        Collage collage = layer.getCollage();
+        Collage collage = component.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
 
-        saveUndoState(layer.getCollage().getId(), layer);
+        if (component instanceof ImageLayer layer) {
+            saveUndoState(layer.getCollage().getId(), layer);
+        }
 
         switch (action) {
             case "rotate_right":
-                layer.setRotationAngle(layer.getRotationAngle() + 90);
+                component.setRotationAngle(component.getRotationAngle() + 90);
                 break;
             case "rotate_left":
-                layer.setRotationAngle(layer.getRotationAngle() - 90);
+                component.setRotationAngle(component.getRotationAngle() - 90);
                 break;
             case "delete":
-                imageLayerRepository.delete(layer);
+                layerComponentRepository.delete(component);
                 return null;
         }
-        return imageLayerRepository.save(layer);
+        return layerComponentRepository.save(component);
     }
 
-    /**
-     * Renders the collage using a recursive approach (Composite).
-     */
     @Transactional
     public Image renderAndSaveCollage(Long collageId, User user) throws IOException {
         Collage collage = findCollageById(collageId);
@@ -166,45 +161,31 @@ public class CollageService {
         );
         Graphics2D g2d = canvas.createGraphics();
 
-        for (ImageLayer layer : collage.getLayers()) {
-            renderLayerRecursive(g2d, layer);
+        for (LayerComponent component : collage.getLayers()) {
+            component.render(g2d, imageService);
         }
 
         g2d.dispose();
         return imageService.saveRenderedCollage(canvas, collage, user);
     }
 
-    /**
-     * Recursively draws a layer. If it is a "Leaf", it draws it.
-     * If it is a "Group", it calls the same method for all "descendants".
-     */
-    private void renderLayerRecursive(Graphics2D g2d, ImageLayer layer) throws IOException {
-        if (layer.isGroup()) {
-            for (ImageLayer child : layer.getChildren()) {
-                renderLayerRecursive(g2d, child);
-            }
-        } else {
-            BufferedImage img = imageService.applyTransformationsToLayer(layer.getId());
-            g2d.drawImage(img, layer.getPositionX(), layer.getPositionY(), null);
-        }
-    }
-
     @Transactional
     public void duplicateLayer(Long layerId) {
-        Prototype<ImageLayer> prototypeLayer = imageLayerRepository.findById(layerId)
-                .orElseThrow(() -> new RuntimeException("Layer not found: " + layerId));
+        LayerComponent prototypeComponent = layerComponentRepository.findById(layerId)
+                .orElseThrow(() -> new RuntimeException("Layer component not found: " + layerId));
 
-        Collage collage = ((ImageLayer) prototypeLayer).getCollage();
+        Collage collage = prototypeComponent.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
 
-        ImageLayer newLayer = prototypeLayer.clone();
+        LayerComponent newComponent = prototypeComponent.clone();
 
         int maxZIndex = collage.getLayers().stream()
-                .mapToInt(ImageLayer::getZIndex)
+                .mapToInt(LayerComponent::getZIndex)
                 .max().orElse(-1);
-        newLayer.setZIndex(maxZIndex + 1);
+        newComponent.setZIndex(maxZIndex + 1);
+        newComponent.setCollage(collage);
 
-        imageLayerRepository.save(newLayer);
+        layerComponentRepository.save(newComponent);
     }
 
     @Transactional
@@ -218,7 +199,7 @@ public class CollageService {
 
         ImageLayerMemento mementoToRestore = undoStack.pop();
 
-        ImageLayer layer = imageLayerRepository.findById(mementoToRestore.layerId())
+        ImageLayer layer = layerComponentRepository.findImageLayerById(mementoToRestore.layerId())
                 .orElseThrow(() -> new RuntimeException("Layer not found"));
 
         if (redoStack == null) redoStack = new Stack<>();
@@ -227,7 +208,7 @@ public class CollageService {
 
         layer.restoreFromMemento(mementoToRestore);
 
-        return imageLayerRepository.save(layer);
+        return layerComponentRepository.save(layer);
     }
 
     @Transactional
@@ -241,7 +222,7 @@ public class CollageService {
 
         ImageLayerMemento mementoToRestore = redoStack.pop();
 
-        ImageLayer layer = imageLayerRepository.findById(mementoToRestore.layerId())
+        ImageLayer layer = layerComponentRepository.findImageLayerById(mementoToRestore.layerId())
                 .orElseThrow(() -> new RuntimeException("Layer not found"));
 
         if (undoStack == null) undoStack = new Stack<>();
@@ -250,7 +231,7 @@ public class CollageService {
 
         layer.restoreFromMemento(mementoToRestore);
 
-        return imageLayerRepository.save(layer);
+        return layerComponentRepository.save(layer);
     }
 
 }

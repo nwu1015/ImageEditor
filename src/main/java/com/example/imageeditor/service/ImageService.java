@@ -5,8 +5,8 @@ import com.example.imageeditor.domain.Image;
 import com.example.imageeditor.domain.ImageLayer;
 import com.example.imageeditor.domain.User;
 import com.example.imageeditor.repository.CollageRepository;
-import com.example.imageeditor.repository.ImageLayerRepository;
 import com.example.imageeditor.repository.ImageRepository;
+import com.example.imageeditor.repository.LayerComponentRepository;
 import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.UrlResource;
@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,7 +39,7 @@ public class ImageService {
 
     private final ImageRepository imageRepository;
 
-    private final ImageLayerRepository imageLayerRepository;
+    private final LayerComponentRepository layerComponentRepository;
 
     private final CollageRepository collageRepository;
 
@@ -120,7 +119,7 @@ public class ImageService {
             throw new SecurityException("You do not have permission to delete this image.");
         }
 
-        List<ImageLayer> layersToDelete = imageLayerRepository.findAllByImage(image);
+        List<ImageLayer> layersToDelete = layerComponentRepository.findAllImageLayersByImage(image);
 
         Set<Collage> collagesToDelete = layersToDelete.stream()
                 .map(ImageLayer::getCollage)
@@ -158,8 +157,8 @@ public class ImageService {
     }
 
     public BufferedImage applyTransformationsToLayer(Long layerId) throws IOException {
-        ImageLayer layer = imageLayerRepository.findById(layerId)
-                .orElseThrow(() -> new RuntimeException("ImageLayer not found with ID: " + layerId));
+        ImageLayer layer = layerComponentRepository.findImageLayerById(layerId)
+                .orElseThrow(() -> new RuntimeException("ImageLayer (Leaf) not found with ID: " + layerId));
 
         Image originalImage = layer.getImage();
         File originalFile = new File(originalImage.getPath());
@@ -215,7 +214,7 @@ public class ImageService {
 
 
     @Transactional
-    public Image saveRenderedCollage(BufferedImage canvas, Collage collage, User user) throws IOException {
+    public Image saveRenderedCollage(BufferedImage canvas, Collage collage, User user){
         String fileExtension = "png";
         String uniqueFilename = "collage-" + UUID.randomUUID() + "." + fileExtension;
         Path destinationFile = this.rootLocation.resolve(uniqueFilename).normalize().toAbsolutePath();

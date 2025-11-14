@@ -20,6 +20,7 @@
         .btn-delete:hover { background-color: #c0392b; }
         .render-section { background-color: #e8f4fd; padding: 20px; border-radius: 5px; }
         .btn-render { background-color: #28a745; font-size: 16px; padding: 10px 20px; }
+        .layer-group-info { background-color: #eaf2f8; padding: 10px; border-radius: 5px; border: 1px dashed #3498db; }
     </style>
 </head>
 <body>
@@ -47,67 +48,79 @@
         <h2>Шари колажу</h2>
 
         <div th:each="layer : ${collage.layers}" class="layer">
-            <img th:src="@{'/collages/layers/' + ${layer.id} + '/transformed' + '?v=' + ${#dates.createNow().getTime()}}" alt="Зображення шару">
-            <div class="layer-controls">
-                <div><strong>Шар ID:</strong> <span th:text="${layer.id}">1</span></div>
-                <div><strong>Поворот:</strong> <span th:text="${layer.rotationAngle}">0</span>°</div>
 
-                <div class="control-group">
-                    <h4>Прості дії</h4>
-                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post">
-                        <input type="hidden" name="action" value="rotate_right">
-                        <button type="submit">Повернути праворуч</button>
-                    </form>
-                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post">
-                        <input type="hidden" name="action" value="rotate_left">
-                        <button type="submit">Повернути ліворуч</button>
-                    </form>
-                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post">
-                        <input type="hidden" name="action" value="delete">
-                        <button type="submit" class="btn-delete">Видалити шар</button>
-                    </form>
+            <div th:if="${layer instanceof T(com.example.imageeditor.domain.ImageLayer)}">
+                <div th:with="imgLayer=${layer}">
 
-                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/clone'}" method="post">
-                        <input type="hidden" name="action" value="clone">
-                        <button type="submit" class="btn-delete">Клонувати шар</button>
-                    </form>
+                    <img th:src="@{'/collages/layers/' + ${imgLayer.id} + '/transformed' + '?v=' + ${#dates.createNow().getTime()}}" alt="Зображення шару">
 
-                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/undo'}" method="post">
-                        <input type="hidden" name="action" value="clone">
-                        <button type="submit" class="btn-delete">Undo</button>
-                    </form>
+                    <div class="layer-controls">
+                        <div><strong>Шар (Листок) ID:</strong> <span th:text="${imgLayer.id}">1</span></div>
+                        <div><strong>Поворот:</strong> <span th:text="${imgLayer.rotationAngle}">0</span>°</div>
 
-                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/redo'}" method="post">
-                        <input type="hidden" name="action" value="clone">
-                        <button type="submit" class="btn-delete">Redo</button>
-                    </form>
-                </div>
+                        <div class="control-group">
+                            <h4>Undo / Redo</h4>
+                            <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${imgLayer.id} + '/undo'}" method="post" style="display: inline-block;">
+                                <button type="submit" class="btn-delete">Undo</button>
+                            </form>
+                            <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${imgLayer.id} + '/redo'}" method="post" style="display: inline-block;">
+                                <button type="submit" class="btn-delete">Redo</button>
+                            </form>
+                        </div>
 
-                <div class="control-group">
-                    <h4>Розтягнути / Стиснути</h4>
-                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/update'}" method="post">
-                        Ширина: <input type="number" name="width" th:value="${layer.width}" required>
-                        Висота: <input type="number" name="height" th:value="${layer.height}" required>
-                        <button type="submit">Змінити розмір</button>
-                    </form>
-                </div>
+                        <div class="control-group">
+                            <h4>Розтягнути / Стиснути</h4>
+                            <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${imgLayer.id} + '/update'}" method="post">
+                                Ширина: <input type="number" name="width" th:value="${imgLayer.width}" required>
+                                Висота: <input type="number" name="height" th:value="${imgLayer.height}" required>
+                                <button type="submit">Змінити розмір</button>
+                            </form>
+                        </div>
 
-                <div class="control-group">
-                    <h4>Кадрувати (відносно оригіналу)</h4>
-                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/update'}" method="post">
-                        X: <input type="number" name="cropX" th:value="${layer.cropX ?: 0}">
-                        Y: <input type="number" name="cropY" th:value="${layer.cropY ?: 0}"> <br>
-                        Ширина: <input type="number" name="cropWidth" th:value="${layer.cropWidth ?: layer.image.width}">
-                        Висота: <input type="number" name="cropHeight" th:value="${layer.cropHeight ?: layer.image.height}">
-                        <button type="submit">Застосувати кадрування</button>
-                    </form>
-                </div>
+                        <div class="control-group">
+                            <h4>Кадрувати (відносно оригіналу)</h4>
+                            <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${imgLayer.id} + '/update'}" method="post">
+                                X: <input type="number" name="cropX" th:value="${imgLayer.cropX ?: 0}">
+                                Y: <input type="number" name="cropY" th:value="${imgLayer.cropY ?: 0}"> <br>
+                                Ширина: <input type="number" name="cropWidth" th:value="${imgLayer.cropWidth ?: imgLayer.image.width}">
+                                Висота: <input type="number" name="cropHeight" th:value="${imgLayer.cropHeight ?: imgLayer.image.height}">
+                                <button type="submit">Застосувати кадрування</button>
+                            </form>
+                        </div>
+                    </div> </div> </div> <div th:if="${layer instanceof T(com.example.imageeditor.domain.LayerGroup)}">
+            <div class="layer-group-info">
+                <h4>Це Група (ID: <span th:text="${layer.id}"></span>)</h4>
+                <p>Дії "Розмір", "Кадрувати" та "Undo/Redo" недоступні для групи.</p>
             </div>
         </div>
 
-        <div th:if="${collage.layers.isEmpty()}">
-            <p>У цьому колажі ще немає жодного шару. Завантажте зображення, щоб почати.</p>
-        </div>
+            <div class="layer-controls">
+                <div class="control-group">
+                    <h4>Загальні дії (для Шару або Групи)</h4>
+                    <div><strong>ID:</strong> <span th:text="${layer.id}"></span></div>
+                    <div><strong>Загальний поворот:</strong> <span th:text="${layer.rotationAngle}">0</span>°</div>
+
+                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post" style="display: inline-block;">
+                        <input type="hidden" name="action" value="rotate_right">
+                        <button type="submit">Повернути на 90 (Загальне)</button>
+                    </form>
+                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post" style="display: inline-block;">
+                        <input type="hidden" name="action" value="rotate_left">
+                        <button type="submit">Повернути на -90 (Загальне)</button>
+                    </form>
+                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post" style="display: inline-block;">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn-delete">Видалити (Загальне)</button>
+                    </form>
+                    <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/clone'}" method="post" style="display: inline-block;">
+                        <button type="submit">Клонувати (Загальне)</button>
+                    </form>
+                </div>
+            </div>
+
+        </div> <div th:if="${collage.layers.isEmpty()}">
+        <p>У цьому колажі ще немає жодного шару. Завантажте зображення, щоб почати.</p>
+    </div>
     </div>
 </div>
 

@@ -1,35 +1,27 @@
 package com.example.imageeditor.domain;
 
+import com.example.imageeditor.service.CollageService;
+import com.example.imageeditor.service.ImageService;
 import com.example.imageeditor.service.Prototype;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList; // Додано
-import java.util.List; // Додано
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Optional;
 
 @Entity
-@Table(name = "image_layers")
+@DiscriminatorValue("LEAF")
 @Data
 @NoArgsConstructor
-public class ImageLayer implements Prototype, Cloneable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
-    private Collage collage;
-
+@EqualsAndHashCode(callSuper = true)
+public class ImageLayer extends LayerComponent implements Prototype, Cloneable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id")
     private Image image;
-
-    private int positionX;
-    private int positionY;
-    private double rotationAngle = 0.0;
-    private int zIndex;
 
     private int width;
     private int height;
@@ -37,75 +29,47 @@ public class ImageLayer implements Prototype, Cloneable {
     private Integer cropY;
     private Integer cropWidth;
     private Integer cropHeight;
+
     @Column(columnDefinition = "TEXT")
     private String effectsJson;
 
-
-    @Column(name = "is_group", nullable = false, columnDefinition = "boolean default false")
-    private boolean isGroup = false; // За замовчуванням це "Листок"
-
-    // Список "нащадків", якщо isGroup = true.
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "parent_layer_id")
-    @OrderBy("zIndex ASC")
-    private List<ImageLayer> children = new ArrayList<>();
-
-    public void add(ImageLayer child) {
-        if (!this.isGroup) {
-            throw new UnsupportedOperationException("Unable to add a child to 'Leaf'.");
-        }
-        children.add(child);
+    @Override
+    public void render(Graphics2D g2d, ImageService imageService) throws IOException {
+        // Логіка малювання ОДНОГО шару
+        BufferedImage img = imageService.applyTransformationsToLayer(this.getId());
+        g2d.drawImage(img, getPositionX(), getPositionY(), null);
     }
 
-    public void remove(ImageLayer child) {
-        if (!this.isGroup) {
-            throw new UnsupportedOperationException("Unable to delete a child to 'Leaf'.");
-        }
-        children.remove(child);
+    @Override
+    public void applyUpdate(CollageService.LayerUpdateDTO dto) {
+        Optional.ofNullable(dto.width).ifPresent(this::setWidth);
+        Optional.ofNullable(dto.height).ifPresent(this::setHeight);
+        Optional.ofNullable(dto.rotationAngle).ifPresent(this::setRotationAngle);
+        Optional.ofNullable(dto.cropX).ifPresent(this::setCropX);
+        Optional.ofNullable(dto.cropY).ifPresent(this::setCropY);
+        Optional.ofNullable(dto.cropWidth).ifPresent(this::setCropWidth);
+        Optional.ofNullable(dto.cropHeight).ifPresent(this::setCropHeight);
     }
 
     @Override
     public ImageLayer clone() {
-        try {
-            ImageLayer newLayer = (ImageLayer) super.clone();
+        ImageLayer newLayer = (ImageLayer) super.clone();
+        newLayer.setId(null);
 
-            newLayer.setId(null);
-            newLayer.setCollage(this.getCollage());
-            newLayer.setGroup(this.isGroup);
+        newLayer.setImage(this.getImage());
+        newLayer.setWidth(this.width);
+        newLayer.setHeight(this.height);
+        newLayer.setCropX(this.cropX);
+        newLayer.setCropY(this.cropY);
+        newLayer.setCropWidth(this.cropWidth);
+        newLayer.setCropHeight(this.cropHeight);
+        newLayer.setEffectsJson(this.effectsJson);
 
-            newLayer.setChildren(new ArrayList<>());
-
-            newLayer.setPositionX(this.positionX);
-            newLayer.setPositionY(this.positionY);
-            newLayer.setRotationAngle(this.rotationAngle);
-
-            if (this.isGroup) {
-                for (ImageLayer child : this.children) {
-                    ImageLayer clonedChild = child.clone(); // Рекурсивний виклик
-                    newLayer.add(clonedChild);
-                }
-            } else {
-                // Якщо це "Листок", копіюємо його унікальні властивості
-                newLayer.setImage(this.getImage());
-                newLayer.setWidth(this.width);
-                newLayer.setHeight(this.height);
-                newLayer.setCropX(this.cropX);
-                newLayer.setCropY(this.cropY);
-                newLayer.setCropWidth(this.cropWidth);
-                newLayer.setCropHeight(this.cropHeight);
-                newLayer.setEffectsJson(this.effectsJson);
-            }
-
-            return newLayer;
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException("Can't clone a layer.", e);
-        }
+        return newLayer;
     }
 
+    @Override
     public ImageLayerMemento createMemento() {
-        if (this.isGroup) {
-            throw new UnsupportedOperationException("Memento not supported for this group.");
-        }
         return new ImageLayerMemento(this);
     }
 

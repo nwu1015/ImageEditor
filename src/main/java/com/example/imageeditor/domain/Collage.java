@@ -37,7 +37,7 @@ public class Collage {
 
     @OneToMany(mappedBy = "collage", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("zIndex ASC")
-    private List<ImageLayer> layers = new ArrayList<>();
+    private List<LayerComponent> layers = new ArrayList<>();
 
     @Column(nullable = false)
     private String status = "DRAFT";
