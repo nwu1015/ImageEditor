@@ -6,21 +6,28 @@ import com.example.imageeditor.repository.CollageRepository;
 import com.example.imageeditor.repository.LayerComponentRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class CollageService {
+
+    private static final Set<String> OPAQUE_FORMATS = Set.of("jpg", "jpeg", "bmp");
 
     private final CollageRepository collageRepository;
     private final LayerComponentRepository layerComponentRepository;
@@ -261,6 +268,58 @@ public class CollageService {
 
         collage.getCurrentState().restore(collage);
         return collageRepository.save(collage);
+    }
+
+    @Transactional(readOnly = true)
+    public Resource generateCollageResource(Long collageId, String format) throws IOException {
+        Collage collage = findCollageById(collageId);
+        String normalizedFormat = format.toLowerCase();
+
+        int width = collage.getCanvasWidth();
+        int height = collage.getCanvasHeight();
+
+        BufferedImage canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = canvas.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+        for (LayerComponent component : collage.getLayers()) {
+            component.render(g2d, imageService);
+        }
+        g2d.dispose();
+
+        BufferedImage imageToSave = canvas;
+
+        if (OPAQUE_FORMATS.contains(normalizedFormat)) {
+            BufferedImage rgbCanvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            Graphics2D rgbG2d = rgbCanvas.createGraphics();
+            rgbG2d.setColor(Color.WHITE);
+            rgbG2d.fillRect(0, 0, width, height);
+            rgbG2d.drawImage(canvas, 0, 0, null);
+            rgbG2d.dispose();
+            imageToSave = rgbCanvas;
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        boolean success = ImageIO.write(imageToSave, normalizedFormat, baos);
+
+        if (!success) {
+            throw new IllegalArgumentException("Формат не підтримується сервером: " + normalizedFormat);
+        }
+
+        byte[] imageBytes = baos.toByteArray();
+
+        String safeName = collage.getName().replaceAll("[^a-zA-Z0-9._-]", "_");
+        String filename = safeName + "." + normalizedFormat;
+
+        return new ByteArrayResource(imageBytes) {
+            @Override
+            public String getFilename() {
+                return filename;
+            }
+        };
     }
 
 }

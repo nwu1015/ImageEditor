@@ -10,16 +10,35 @@
         .header-placeholder { height: 70px; }
         header {
             background-color: #ffffff; padding: 15px 30px; border-bottom: 1px solid #ddd; display: flex;
-            justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; box-sizing: border-box;
+            justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; box-sizing: border-box; z-index: 1000;
         }
         .logo a { font-size: 1.5em; font-weight: bold; text-decoration: none; color: #333; }
         .user-controls { display: flex; align-items: center; gap: 15px; }
         .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .image-card { background: white; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; align-items: start; }
+
+        .image-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
         .image-card img { width: 100%; height: 200px; object-fit: cover; }
-        .image-card-info { padding: 15px; }
-        .image-card-info h3 { margin: 0 0 10px 0; font-size: 1.1em; word-break: break-all; }
+
+        .image-card-info {
+            padding: 12px; /* Було 15px */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .image-card-info h3 { margin: 0 0 8px 0; font-size: 1.1em; word-break: break-all; }
         .no-images { text-align: center; color: #777; font-size: 1.2em; padding: 50px; }
 
         .btn {
@@ -33,72 +52,113 @@
             border: none;
             cursor: pointer;
             text-align: center;
+            box-sizing: border-box;
         }
         .btn-logout { background-color: #e74c3c; }
         .btn-edit { background-color: #28a745; }
         .btn-delete { background-color: #e74c3c; }
 
-        .title-update-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+        .title-update-form { display: flex; gap: 10px; margin-bottom: 15px; }
         .title-update-form input { flex-grow: 1;}
-
-        .card-actions {
-            display: flex;
-            gap: 10px;
-        }
+        .card-actions { display: flex; gap: 10px; }
         .card-actions form { margin: 0; }
 
-        .upload-form {
-            margin-top: 40px;
-            padding: 25px;
-            background-color: #eef1f2;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+        .upload-form { margin-top: 40px; padding: 25px; background-color: #eef1f2; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
+        .upload-form form { display: flex; justify-content: center; align-items: center; gap: 15px; }
+        .upload-form input[type="file"] { display: none; }
+        .btn-upload { background-color: #5c6bc0; }
+        .btn-upload:hover { background-color: #3f51b5; }
+        .message { margin-top: 15px; font-size: 1.1em; font-weight: bold; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+
+
+        .collage-card.status-published .collage-thumbnail-container { border-bottom-color: #d4edda; }
+        .collage-card.status-archived .collage-thumbnail-container { opacity: 0.8; }
+
+        .collage-meta {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            flex-grow: 1;
+        }
+
+        .status-badge { padding: 3px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; display: inline-block; margin-top: 3px;}
+        .badge-draft { background-color: #e0e0e0; color: #333; }
+        .badge-published { background-color: #d4edda; color: #155724; }
+        .badge-archived { background-color: #f8d7da; color: #721c24; }
+
+        .collage-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .collage-actions > a.btn {
+            width: 100%;
             text-align: center;
         }
 
-        .upload-form form {
+        .collage-actions div[style*="margin-top: 10px"] {
+            margin-top: 0 !important;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
+            flex-wrap: wrap;
+            gap: 5px;
         }
 
-        .upload-form input[type="file"] {
-            display: none;
+        .collage-actions div form {
+            flex-grow: 1;
+            min-width: 45%;
         }
-
-        .btn-upload {
-            background-color: #5c6bc0;
+        .collage-actions div form button {
+            width: 100%;
+            padding: 6px 10px;
+            font-size: 0.9em;
         }
-        .btn-upload:hover {
-            background-color: #3f51b5;
-        }
-
-        .message {
-            margin-top: 15px;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-        .success {
-            color: #28a745;
-        }
-        .error {
-            color: #dc3545;
-        }
-
-        .collage-card.status-published .collage-thumbnail-placeholder { background: #d4edda; color: #155724; }
-        .collage-card.status-archived .collage-thumbnail-placeholder { background: #f8d7da; color: #721c24; }
-        .collage-card.status-archived { opacity: 0.7; }
-
-        .collage-actions form { display: inline-block; margin: 2px; }
         .btn-success { background-color: #28a745; color: white; }
         .btn-warning { background-color: #ffc107; color: black; }
         .btn-info { background-color: #17a2b8; color: white; }
-        .collage-meta { font-size: 0.9em; color: #666; margin-bottom: 10px;}
+
+        .download-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .download-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-grow: 2;
+        }
+
+        .format-label {
+            font-size: 0.9em;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        .format-select {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 0.9em;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        .btn-download {
+            background-color: #007bff;
+            color: white !important;
+            border: none;
+            padding: 7px 12px;
+            font-size: 0.9em;
+            white-space: nowrap;
+            flex-grow: 1;
+            text-align: center;
+            min-width: 100px;
+        }
     </style>
 </head>
 <body>
@@ -123,7 +183,7 @@
     <h2>Завантажити нове зображення</h2>
     <form method="POST" th:action="@{/images/upload}" enctype="multipart/form-data">
 
-        <input type="file" name="file" id="file-upload" accept=".jpg, .jpeg, .png, .gif, .webp" required />
+        <input type="file" name="file" id="file-upload" accept=".jpg, .tiff, .png, .gif, .bmp" required />
 
         <label for="file-upload" class="btn btn-upload">Вибрати файл</label>
 
@@ -152,7 +212,7 @@
                 </form>
 
                 <div class="card-actions" style="margin-top: 10px;">
-                    <a th:href="@{'/collages/from-image/' + ${image.id}}" class="btn">Створити колаж</a>
+                    <a th:href="@{'/collages/from-image/' + ${image.id}}" class="btn">Редагувати</a>
                     <form th:action="@{'/images/delete/' + ${image.id}}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-delete">Видалити</button>
                     </form>
@@ -179,11 +239,11 @@
                      alt="Collage Preview"
                      style="width: 100%; height: 150px; object-fit: cover; border-bottom: 1px solid #eee; display: block; border-top-left-radius: 8px; border-top-right-radius: 8px;">
             </div>
-
             <div th:if="${collage.previewFileName == null}" class="collage-placeholder">
                 <span>Немає прев'ю</span>
             </div>
-            <div class="image-card-info" style="padding: 10px;">
+
+            <div class="image-card-info">
                 <h3 th:text="${collage.name}" style="margin: 0;">Назва колажу</h3>
 
                 <p class="collage-meta">
@@ -200,23 +260,37 @@
                        th:href="@{'/collages/' + ${collage.id}}"
                        class="btn">Редагувати</a>
 
+
                     <div style="margin-top: 10px;">
                         <form th:if="${collage.status == 'DRAFT'}"
                               th:action="@{'/collages/' + ${collage.id} + '/publish'}" method="post">
                             <button type="submit" class="btn btn-success">Опублікувати</button>
                         </form>
-
                         <form th:if="${collage.status != 'ARCHIVED'}"
                               th:action="@{'/collages/' + ${collage.id} + '/archive'}" method="post">
                             <button type="submit" class="btn btn-warning">В архів</button>
                         </form>
-
                         <form th:if="${collage.status != 'DRAFT' and collage.status != 'PUBLISHED'}"
                               th:action="@{'/collages/' + ${collage.id} + '/restore'}" method="post">
                             <button type="submit" class="btn btn-info">Відновити</button>
                         </form>
                     </div>
 
+                    <hr style="margin: 10px 0; border-top: 1px solid #eee;">
+                    <form th:if="${collage.status == 'PUBLISHED'}"
+                            th:action="@{'/collages/' + ${collage.id} + '/download'}" method="get" class="download-form">
+                        <div class="download-controls">
+                            <label th:for="${'formatSelect-' + collage.id}" class="format-label">Формат:</label>
+                            <select name="format" th:id="${'formatSelect-' + collage.id}" class="format-select">
+                                <option value="png">PNG</option>
+                                <option value="jpg">JPG</option>
+                                <option value="tiff">TIFF</option>
+                                <option value="gif">GIF</option>
+                                <option value="bmp">BMP</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-download">Зберегти</button>
+                    </form>
                 </div>
             </div>
         </div>

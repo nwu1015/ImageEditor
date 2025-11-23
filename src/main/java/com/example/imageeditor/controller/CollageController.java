@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -19,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Controller
 @RequestMapping("/collages")
@@ -180,5 +183,38 @@ public class CollageController {
             e.printStackTrace();
         }
         return "redirect:/my-images";
+    }
+
+    @GetMapping("/{collageId}/download")
+    @ResponseBody
+    public ResponseEntity<Resource> downloadCollage(@PathVariable Long collageId,
+                                                    @RequestParam("format") String format) {
+        try {
+            Resource fileResource = collageService.generateCollageResource(collageId, format);
+            MediaType mediaType = switch (format.toLowerCase()) {
+                case "png" -> MediaType.IMAGE_PNG;
+                case "jpg", "jpeg" -> MediaType.IMAGE_JPEG;
+                case "gif" -> MediaType.IMAGE_GIF;
+                case "tiff", "tif" -> MediaType.parseMediaType("image/tiff");
+                case "bmp" -> MediaType.parseMediaType("image/bmp");
+                default -> MediaType.APPLICATION_OCTET_STREAM;
+            };
+
+            String filename = fileResource.getFilename();
+            String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8.toString())
+                    .replaceAll("\\+", "%20");
+
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + encodedFilename + "\"; filename*=UTF-8''" + encodedFilename)
+                    .body(fileResource);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

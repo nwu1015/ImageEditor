@@ -39,7 +39,7 @@
     <div class="upload-section">
         <h2>Додати нове зображення</h2>
         <form th:action="@{'/collages/' + ${collage.id} + '/layers/add'}" method="post" enctype="multipart/form-data">
-            <input type="file" name="imageFile" accept=".jpg, .jpeg, .png, .gif, .webp" required>
+            <input type="file" name="imageFile" accept=".jpg, .tiff, .png, .gif, .bmp" required>
             <button type="submit">Додати в колаж</button>
         </form>
     </div>
