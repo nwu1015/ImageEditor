@@ -37,4 +37,7 @@ public class Image {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     private User owner;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean renderedResult = false;
 }

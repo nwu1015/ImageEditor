@@ -42,6 +42,9 @@ public class Collage {
     @Column(nullable = false)
     private String status = "DRAFT";
 
+    @Column(name = "preview_filename")
+    private String previewFileName;
+
     @Transient
     private CollageState currentState;
 

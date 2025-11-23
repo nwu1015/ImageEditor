@@ -31,9 +31,6 @@ public class CollageController {
 
     private final ImageService imageService;
 
-    /**
-     * Transition method: finds the collage by image ID and redirects to the main editor.
-     */
     @GetMapping("/from-image/{imageId}")
     public String editCollageFromImage(@PathVariable Long imageId, @AuthenticationPrincipal User user) {
         Image image = imageRepository.findById(imageId)
@@ -49,18 +46,12 @@ public class CollageController {
         return "redirect:/collages/" + collageId;
     }
 
-    /**
-     * The main method that displays the editor page for a specific collage.
-     */
     @GetMapping("/{collageId}")
     public String showEditorPage(@PathVariable Long collageId, Model model) {
         model.addAttribute("collage", collageService.findCollageById(collageId));
         return "editor";
     }
 
-    /**
-     * Handles loading a new image into the collage.
-     */
     @PostMapping("/{collageId}/layers/add")
     public String handleImageUpload(@PathVariable Long collageId,
                                     @RequestParam("imageFile") MultipartFile file,
@@ -78,9 +69,6 @@ public class CollageController {
         return "redirect:/collages/" + collageId;
     }
 
-    /**
-     * Processes actions on an existing layer (rotate, delete, etc.).
-     */
     @PostMapping("/{collageId}/layers/{layerId}/action")
     public String handleLayerAction(@PathVariable Long collageId,
                                     @PathVariable Long layerId,
@@ -150,5 +138,47 @@ public class CollageController {
                              @ModelAttribute CollageService.LayerUpdateDTO dto){
         collageService.redo(collageId);
         return "redirect:/collages/" + collageId;
+    }
+
+    @PostMapping("/{collageId}/publish")
+    public String publishCollage(@PathVariable Long collageId, RedirectAttributes redirectAttributes) {
+        try {
+            collageService.publishCollage(collageId);
+            redirectAttributes.addFlashAttribute("successMessage", "Колаж успішно опубліковано!");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при публікації колажу.");
+            e.printStackTrace();
+        }
+        return "redirect:/my-images";
+    }
+
+    @PostMapping("/{collageId}/archive")
+    public String archiveCollage(@PathVariable Long collageId, RedirectAttributes redirectAttributes) {
+        try {
+            collageService.archiveCollage(collageId);
+            redirectAttributes.addFlashAttribute("successMessage", "Колаж переміщено в архів.");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при архівуванні.");
+            e.printStackTrace();
+        }
+        return "redirect:/my-images";
+    }
+
+    @PostMapping("/{collageId}/restore")
+    public String restoreCollage(@PathVariable Long collageId, RedirectAttributes redirectAttributes) {
+        try {
+            collageService.restoreCollage(collageId);
+            redirectAttributes.addFlashAttribute("successMessage", "Колаж відновлено до чернетки. Можна редагувати.");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при відновленні.");
+            e.printStackTrace();
+        }
+        return "redirect:/my-images";
     }
 }

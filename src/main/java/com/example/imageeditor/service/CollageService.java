@@ -166,7 +166,12 @@ public class CollageService {
         }
 
         g2d.dispose();
-        return imageService.saveRenderedCollage(canvas, collage, user);
+
+        Image savedImageEntity = imageService.saveRenderedCollage(canvas, collage, user);
+        collage.setPreviewFileName(savedImageEntity.getFileName());
+        collageRepository.save(collage);
+
+        return savedImageEntity;
     }
 
     @Transactional
@@ -232,6 +237,30 @@ public class CollageService {
         layer.restoreFromMemento(mementoToRestore);
 
         return layerComponentRepository.save(layer);
+    }
+
+    @Transactional
+    public Collage publishCollage(Long collageId) {
+        Collage collage = findCollageById(collageId);
+        collage.getCurrentState().publish(collage);
+        return collageRepository.save(collage);
+    }
+
+    @Transactional
+    public Collage archiveCollage(Long collageId) {
+        Collage collage = findCollageById(collageId);
+        collage.getCurrentState().archive(collage);
+        return collageRepository.save(collage);
+    }
+
+    @Transactional
+    public Collage restoreCollage(Long collageId) {
+        Collage collage = findCollageById(collageId);
+        undoStacks.remove(collageId);
+        redoStacks.remove(collageId);
+
+        collage.getCurrentState().restore(collage);
+        return collageRepository.save(collage);
     }
 
 }

@@ -44,7 +44,7 @@ public class ImageService {
     private final CollageRepository collageRepository;
 
     public List<Image> findImagesByUser(User user) {
-        return imageRepository.findByOwner(user);
+        return imageRepository.findByUserAndRenderedResultFalse(user);
     }
 
     public Image storeImage(MultipartFile file, User owner) {
@@ -83,6 +83,7 @@ public class ImageService {
             image.setPath(destinationFile.toString());
             image.setFileFormat(fileExtension);
             image.setOwner(owner);
+            image.setRenderedResult(false);
 
             image.setWidth(width);
             image.setHeight(height);
@@ -225,6 +226,8 @@ public class ImageService {
         finalImage.setPath(destinationFile.toString());
         finalImage.setFileFormat(fileExtension);
         finalImage.setOwner(user);
+        finalImage.setTitle("Render: " + collage.getName());
+        finalImage.setRenderedResult(true);
         finalImage.setWidth(canvas.getWidth());
         finalImage.setHeight(canvas.getHeight());
         finalImage.setTitle("Результат колажу: " + collage.getName());

@@ -1,7 +1,9 @@
 package com.example.imageeditor.controller;
 
+import com.example.imageeditor.domain.Collage;
 import com.example.imageeditor.domain.Image;
 import com.example.imageeditor.domain.User;
+import com.example.imageeditor.repository.CollageRepository;
 import com.example.imageeditor.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,6 +33,7 @@ import java.util.List;
 public class ImageController {
 
     private final ImageService imageService;
+    private final CollageRepository collageRepository;
 
     @GetMapping("/api/images/{filename:.+}")
     @ResponseBody
@@ -55,11 +58,12 @@ public class ImageController {
 
     @GetMapping("/my-images")
     public String showMyImages(Model model, @AuthenticationPrincipal User user) {
-        // @AuthenticationPrincipal User user - Spring Security автоматично
-        // підставить сюди об'єкт поточного залогіненого користувача.
-
         List<Image> images = imageService.findImagesByUser(user);
         model.addAttribute("images", images);
+
+        List<Collage> collages = collageRepository.findByUserOrderByLastModifiedAtDesc(user);
+        model.addAttribute("collages", collages);
+
         return "my-images";
     }
 

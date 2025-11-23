@@ -89,6 +89,16 @@
         .error {
             color: #dc3545;
         }
+
+        .collage-card.status-published .collage-thumbnail-placeholder { background: #d4edda; color: #155724; }
+        .collage-card.status-archived .collage-thumbnail-placeholder { background: #f8d7da; color: #721c24; }
+        .collage-card.status-archived { opacity: 0.7; }
+
+        .collage-actions form { display: inline-block; margin: 2px; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-info { background-color: #17a2b8; color: white; }
+        .collage-meta { font-size: 0.9em; color: #666; margin-bottom: 10px;}
     </style>
 </head>
 <body>
@@ -125,7 +135,7 @@
 </div>
 
 <div class="container">
-    <h2>Моя галерея</h2>
+    <h2>Мої вихідні зображення</h2>
 
     <div th:if="${images.isEmpty()}" class="no-images">
         <p>Ви ще не завантажили жодного зображення.</p>
@@ -136,17 +146,77 @@
             <img th:src="@{'/api/images/' + ${image.fileName}}" />
             <div class="image-card-info">
                 <h3 th:text="${image.title != null ? image.title : image.fileName}">Назва</h3>
-
-                <form th:action="@{'/images/update/' + ${image.id}}" method="post" class="title-update-form">
+                <form th:action="@{'/images/update/' + ${image.id}}" method="post">
                     <input type="text" name="title" placeholder="Нова назва" required>
                     <button type="submit" class="btn">Зберегти</button>
                 </form>
 
-                <div class="card-actions">
-                    <a th:href="@{'/collages/from-image/' + ${image.id}}" class="btn btn-edit">Редагувати</a>
-                    <form th:action="@{'/images/delete/' + ${image.id}}" method="post">
+                <div class="card-actions" style="margin-top: 10px;">
+                    <a th:href="@{'/collages/from-image/' + ${image.id}}" class="btn">Створити колаж</a>
+                    <form th:action="@{'/images/delete/' + ${image.id}}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-delete">Видалити</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr style="margin: 40px 0; border-top: 2px dashed #ccc;">
+<div class="container" id="my-collages-section">
+    <h2>Мої Проєкти Колажів</h2>
+
+    <div th:if="${collages == null or collages.isEmpty()}" class="no-images">
+        <p>Ви ще не створили жодного проєкту колажу.</p>
+    </div>
+
+    <div th:if="${collages != null and !collages.isEmpty()}" class="gallery collages-gallery">
+        <div th:each="collage : ${collages}" class="image-card collage-card"
+             th:classappend="${'status-' + collage.status.toLowerCase()}">
+
+            <div th:if="${collage.previewFileName != null}" class="collage-thumbnail-container">
+                <img th:src="@{'/api/images/' + ${collage.previewFileName}}"
+                     alt="Collage Preview"
+                     style="width: 100%; height: 150px; object-fit: cover; border-bottom: 1px solid #eee; display: block; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+            </div>
+
+            <div th:if="${collage.previewFileName == null}" class="collage-placeholder">
+                <span>Немає прев'ю</span>
+            </div>
+            <div class="image-card-info" style="padding: 10px;">
+                <h3 th:text="${collage.name}" style="margin: 0;">Назва колажу</h3>
+
+                <p class="collage-meta">
+                    Статус:
+                    <span class="status-badge"
+                          th:text="${collage.status}"
+                          th:classappend="${'badge-' + collage.status.toLowerCase()}">DRAFT</span>
+                    <br/>
+                    <small th:text="${'Змінено: ' + #temporals.format(collage.lastModifiedAt, 'dd.MM.yyyy HH:mm')}">Дата</small>
+                </p>
+
+                <div class="card-actions collage-actions">
+                    <a th:if="${collage.status == 'DRAFT'}"
+                       th:href="@{'/collages/' + ${collage.id}}"
+                       class="btn">Редагувати</a>
+
+                    <div style="margin-top: 10px;">
+                        <form th:if="${collage.status == 'DRAFT'}"
+                              th:action="@{'/collages/' + ${collage.id} + '/publish'}" method="post">
+                            <button type="submit" class="btn btn-success">Опублікувати</button>
+                        </form>
+
+                        <form th:if="${collage.status != 'ARCHIVED'}"
+                              th:action="@{'/collages/' + ${collage.id} + '/archive'}" method="post">
+                            <button type="submit" class="btn btn-warning">В архів</button>
+                        </form>
+
+                        <form th:if="${collage.status != 'DRAFT' and collage.status != 'PUBLISHED'}"
+                              th:action="@{'/collages/' + ${collage.id} + '/restore'}" method="post">
+                            <button type="submit" class="btn btn-info">Відновити</button>
+                        </form>
+                    </div>
+
                 </div>
             </div>
         </div>
