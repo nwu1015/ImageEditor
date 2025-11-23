@@ -35,7 +35,7 @@ public class ImageLayer extends LayerComponent implements Prototype, Cloneable {
 
     @Override
     public void render(Graphics2D g2d, ImageService imageService) throws IOException {
-        // Логіка малювання ОДНОГО шару
+        // One layer
         BufferedImage img = imageService.applyTransformationsToLayer(this.getId());
         g2d.drawImage(img, getPositionX(), getPositionY(), null);
     }

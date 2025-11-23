@@ -102,18 +102,18 @@
 
                     <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post" style="display: inline-block;">
                         <input type="hidden" name="action" value="rotate_right">
-                        <button type="submit">Повернути на 90 (Загальне)</button>
+                        <button type="submit">Повернути на 90</button>
                     </form>
                     <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post" style="display: inline-block;">
                         <input type="hidden" name="action" value="rotate_left">
-                        <button type="submit">Повернути на -90 (Загальне)</button>
+                        <button type="submit">Повернути на -90</button>
                     </form>
                     <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/action'}" method="post" style="display: inline-block;">
                         <input type="hidden" name="action" value="delete">
-                        <button type="submit" class="btn-delete">Видалити (Загальне)</button>
+                        <button type="submit" class="btn-delete">Видалити</button>
                     </form>
                     <form th:action="@{'/collages/' + ${collage.id} + '/layers/' + ${layer.id} + '/clone'}" method="post" style="display: inline-block;">
-                        <button type="submit">Клонувати (Загальне)</button>
+                        <button type="submit">Клонувати</button>
                     </form>
                 </div>
             </div>

@@ -208,11 +208,6 @@ public class ImageService {
         return currentImage;
     }
 
-    public Image saveFinalImage(Image image) {
-        return imageRepository.save(image);
-    }
-
-
     @Transactional
     public Image saveRenderedCollage(BufferedImage canvas, Collage collage, User user){
         String fileExtension = "png";

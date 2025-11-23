@@ -43,7 +43,7 @@
             gap: 10px;
             margin-bottom: 15px;
         }
-        .title-update-form input { flex-grow: 1; /* Поле вводу займає весь доступний простір */ }
+        .title-update-form input { flex-grow: 1;}
 
         .card-actions {
             display: flex;
@@ -113,7 +113,7 @@
     <h2>Завантажити нове зображення</h2>
     <form method="POST" th:action="@{/images/upload}" enctype="multipart/form-data">
 
-        <input type="file" name="file" id="file-upload" required />
+        <input type="file" name="file" id="file-upload" accept=".jpg, .jpeg, .png, .gif, .webp" required />
 
         <label for="file-upload" class="btn btn-upload">Вибрати файл</label>
 
