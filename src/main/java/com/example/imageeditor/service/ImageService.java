@@ -52,7 +52,7 @@ public class ImageService {
 
         try {
             if (file.isEmpty()) {
-                throw new RuntimeException("Cannot store empty file.");
+                throw new RuntimeException("Неможливо зберегти пустий файл");
             }
 
             String fileExtension = getFileExtension(originalFilename);
@@ -91,7 +91,7 @@ public class ImageService {
             return imageRepository.save(image);
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to store file.", e);
+            throw new RuntimeException("Помилка при зберіганні файлу", e);
         }
     }
 
@@ -101,10 +101,10 @@ public class ImageService {
 
     public Image updateImageTitle(Long imageId, String newTitle, User currentUser) {
         Image image = imageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found!"));
+                .orElseThrow(() -> new RuntimeException("Зображення не знайдено!"));
 
         if (!image.getOwner().getId().equals(currentUser.getId())) {
-            throw new SecurityException("You do not have permission to edit this image.");
+            throw new SecurityException("Немає доступу до редагування цієї фотографії");
         }
 
         image.setTitle(newTitle);
@@ -114,10 +114,10 @@ public class ImageService {
     @Transactional
     public void deleteImage(Long imageId, User currentUser) {
         Image image = imageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found!"));
+                .orElseThrow(() -> new RuntimeException("Зображення не знайдено!"));
 
         if (!image.getOwner().getId().equals(currentUser.getId())) {
-            throw new SecurityException("You do not have permission to delete this image.");
+            throw new SecurityException("Немає доступу до редагування цієї фотографії");
         }
 
         List<ImageLayer> layersToDelete = layerComponentRepository.findAllImageLayersByImage(image);
@@ -136,7 +136,7 @@ public class ImageService {
 
             imageRepository.delete(image);
         } catch (Exception e) {
-            throw new RuntimeException("Could not delete the image.", e);
+            throw new RuntimeException("Неможливо видалити зображення", e);
         }
     }
 
@@ -153,13 +153,13 @@ public class ImageService {
         if (resource.exists() || resource.isReadable()) {
             return resource;
         } else {
-            throw new RuntimeException("Could not read the transformed file!");
+            throw new RuntimeException("Неможливо прочитати змінений файл");
         }
     }
 
     public BufferedImage applyTransformationsToLayer(Long layerId) throws IOException {
         ImageLayer layer = layerComponentRepository.findImageLayerById(layerId)
-                .orElseThrow(() -> new RuntimeException("ImageLayer (Leaf) not found with ID: " + layerId));
+                .orElseThrow(() -> new RuntimeException("ImageLayer (Leaf) не знайдено з ID: " + layerId));
 
         Image originalImage = layer.getImage();
         File originalFile = new File(originalImage.getPath());
@@ -218,7 +218,7 @@ public class ImageService {
         try {
             ImageIO.write(canvas, fileExtension, destinationFile.toFile());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save rendered collage", e);
+            throw new RuntimeException("Помилка при зберігання колажу", e);
         }
 
         Image finalImage = new Image();

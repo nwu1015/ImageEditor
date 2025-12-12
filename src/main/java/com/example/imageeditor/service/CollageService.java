@@ -85,7 +85,7 @@ public class CollageService {
     @Transactional
     public ImageLayer updateImageLayer(Long layerId, LayerUpdateDTO dto) {
         ImageLayer layer = layerComponentRepository.findImageLayerById(layerId)
-                .orElseThrow(() -> new RuntimeException("ImageLayer (Leaf) not found with ID: " + layerId));
+                .orElseThrow(() -> new RuntimeException("ImageLayer (Leaf) не знайдено з ID: " + layerId));
 
         Collage collage = layer.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
@@ -105,7 +105,7 @@ public class CollageService {
 
     public Collage findCollageById(Long collageId) {
         return collageRepository.findById(collageId)
-                .orElseThrow(() -> new RuntimeException("Collage not found with id: " + collageId));
+                .orElseThrow(() -> new RuntimeException("Колаж не знайдено з id: " + collageId));
     }
 
     @Transactional
@@ -134,7 +134,7 @@ public class CollageService {
     @Transactional
     public LayerComponent updateLayerAction(Long layerId, String action) {
         LayerComponent component = layerComponentRepository.findById(layerId)
-                .orElseThrow(() -> new RuntimeException("LayerComponent not found with id: " + layerId));
+                .orElseThrow(() -> new RuntimeException("LayerComponent не знайдено з id: " + layerId));
 
         Collage collage = component.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
@@ -184,7 +184,7 @@ public class CollageService {
     @Transactional
     public void duplicateLayer(Long layerId) {
         LayerComponent prototypeComponent = layerComponentRepository.findById(layerId)
-                .orElseThrow(() -> new RuntimeException("Layer component not found: " + layerId));
+                .orElseThrow(() -> new RuntimeException("Компонент не знайдено: " + layerId));
 
         Collage collage = prototypeComponent.getCollage();
         collage.getCurrentState().checkCanEdit(collage);
@@ -212,7 +212,7 @@ public class CollageService {
         ImageLayerMemento mementoToRestore = undoStack.pop();
 
         ImageLayer layer = layerComponentRepository.findImageLayerById(mementoToRestore.layerId())
-                .orElseThrow(() -> new RuntimeException("Layer not found"));
+                .orElseThrow(() -> new RuntimeException("Шар не знайдено"));
 
         if (redoStack == null) redoStack = new Stack<>();
         redoStack.push(layer.createMemento());
@@ -235,7 +235,7 @@ public class CollageService {
         ImageLayerMemento mementoToRestore = redoStack.pop();
 
         ImageLayer layer = layerComponentRepository.findImageLayerById(mementoToRestore.layerId())
-                .orElseThrow(() -> new RuntimeException("Layer not found"));
+                .orElseThrow(() -> new RuntimeException("Шар не знайдено"));
 
         if (undoStack == null) undoStack = new Stack<>();
         undoStack.push(layer.createMemento());

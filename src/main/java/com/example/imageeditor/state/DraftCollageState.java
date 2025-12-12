@@ -26,6 +26,6 @@ public class DraftCollageState implements CollageState {
     @Override
     public void restore(Collage context) {
         throw new IllegalStateException(
-                "Cannot restore from Draft state.");
+                "Неможливо відновити файл з чорновика");
     }
 }

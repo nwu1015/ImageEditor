@@ -37,10 +37,10 @@ public class CollageController {
     @GetMapping("/from-image/{imageId}")
     public String editCollageFromImage(@PathVariable Long imageId, @AuthenticationPrincipal User user) {
         Image image = imageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found!"));
+                .orElseThrow(() -> new RuntimeException("Зображення не знайдено!"));
 
         if (!image.getOwner().getId().equals(user.getId())) {
-            throw new SecurityException("Access Denied");
+            throw new SecurityException("Відмова доступу");
         }
 
         ImageLayer layer = collageService.findOrCreateLayerForImage(image, user);

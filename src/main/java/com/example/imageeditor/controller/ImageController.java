@@ -49,10 +49,10 @@ public class ImageController {
                                 "inline; filename=\"" + resource.getFilename() + "\"")
                         .body(resource);
             } else {
-                throw new RuntimeException("Could not read the file!");
+                throw new RuntimeException("Неможливо прочитати файл");
             }
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Error: " + e.getMessage());
+            throw new RuntimeException("Помилка: " + e.getMessage());
         }
     }
 
@@ -74,7 +74,7 @@ public class ImageController {
         try {
             imageService.storeImage(file, user);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "File uploaded successfully!");
+                    "Файл успішно завантажено!");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

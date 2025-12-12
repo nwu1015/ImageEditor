@@ -41,7 +41,7 @@ public abstract class LayerComponent implements Prototype, Cloneable {
         try {
             return (LayerComponent) super.clone();
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException("Can't clone component", e);
+            throw new RuntimeException("Неможливо клонувати компонент", e);
         }
     }
 }

@@ -23,10 +23,10 @@ public class EditorController {
     @GetMapping("/editor/{imageId}")
     public String showEditor(@PathVariable Long imageId, Model model, @AuthenticationPrincipal User user) {
         Image image = imageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found!"));
+                .orElseThrow(() -> new RuntimeException("Зображення не знайдено!"));
 
         if (!image.getOwner().getId().equals(user.getId())) {
-            throw new SecurityException("Access Denied");
+            throw new SecurityException("Доступ відхилено");
         }
 
         ImageLayer layer = collageService.findOrCreateLayerForImage(image, user);

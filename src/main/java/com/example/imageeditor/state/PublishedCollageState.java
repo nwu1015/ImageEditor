@@ -11,7 +11,7 @@ public class PublishedCollageState implements CollageState {
     @Override
     public void checkCanEdit(Collage context) {
         throw new IllegalStateException(
-                "Cannot edit a PUBLISHED collage. Archive it first to make changes.");
+                "Неможливо змінювати файл, який вже опублікований");
     }
 
     @Override
@@ -26,6 +26,6 @@ public class PublishedCollageState implements CollageState {
     @Override
     public void restore(Collage context) {
         throw new IllegalStateException(
-                "Cannot restore from Published state.");
+                "Неможливо відновити файл з чорновика");
     }
 }

@@ -53,12 +53,12 @@ public class LayerGroup extends LayerComponent {
 
     @Override
     public ImageLayerMemento createMemento() {
-        throw new UnsupportedOperationException("Memento not supported for this groups");
+        throw new UnsupportedOperationException("Memento не підтримується для цієї групи");
     }
 
     @Override
     public void restoreFromMemento(ImageLayerMemento memento) {
-        throw new UnsupportedOperationException("Memento not supported for this groups");
+        throw new UnsupportedOperationException("Memento не підтримується для цієї групи");
     }
 
     public void add(LayerComponent component) {

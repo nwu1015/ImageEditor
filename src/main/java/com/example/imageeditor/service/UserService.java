@@ -14,7 +14,7 @@ public class UserService {
 
     public void register(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new IllegalStateException("User already exists!");
+            throw new IllegalStateException("Такий користувач вже існує");
         }
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);

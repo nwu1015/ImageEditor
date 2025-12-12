@@ -8,12 +8,12 @@ public class ArchivedCollageState implements CollageState {
 
     @Override
     public void checkCanEdit(Collage context) {
-        throw new IllegalStateException("Cannot edit an ARCHIVED collage. Restore it first.");
+        throw new IllegalStateException("Неможливо змінювати архівований колаж");
     }
 
     @Override
     public void publish(Collage context) {
-        throw new IllegalStateException("Cannot publish an ARCHIVED collage. Restore it first.");
+        throw new IllegalStateException("Неможливо опублікувати архівований колаж");
     }
 
     @Override
